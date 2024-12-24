@@ -24,11 +24,32 @@ body {
 	background: #101010;
 	color: yellow;
 	font-size: x-large;
-	padding: 50px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
+	padding: 20px 0; /* 상하단 여백만 */
 	position: fixed;
 	width: 100%;
 	z-index: 1000;
+}
+.shimmer-text {
+	display: inline-block; /* 텍스트 폭만큼만 영역 */
+	position: relative;
+	color: transparent; /* 글자 자체는 투명 처리 */
+	background: linear-gradient(
+		to right,
+		#ffffff 0%,
+		#ffffff 10%,
+		#f2abdd 50%,
+		/* 중간에 다른 포인트 색상 (핑크 등) */ #ffffff 90%,
+		#ffffff 100%
+	);
+	background-size: 200%; /* 넉넉히 잡아서 움직임을 줄 공간 */
+	background-position: left center; /* 초기값: 왼쪽에서 시작 */
+	-webkit-background-clip: text; /* 배경을 글자 영역에만 보이게 */
+	background-clip: text; /* 파이어폭스 등 호환성 위해 선언 */
+	transition: none; /* 기본 상태에서는 애니메이션 없음 */
+}
+
+/* 2) 호버 시 */
+.shimmer-text:hover {
+	background-position: right center; /* 오른쪽으로 이동 */
+	transition: background-position 0.5s ease; /* 0.5초간 부드럽게 이동 */
 }

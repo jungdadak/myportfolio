@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
+	--background: #101010;
+	--foreground: #ededed;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,7 +21,7 @@ body {
 }
 
 .navbar-bg {
-	background: #102020;
+	background: #101010;
 	color: yellow;
 	font-size: x-large;
 	padding: 50px;

@@ -50,6 +50,6 @@ body {
 
 /* 2) 호버 시 */
 .shimmer-text:hover {
-	background-position: right center; /* 오른쪽으로 이동 */
-	transition: background-position 0.5s ease; /* 0.5초간 부드럽게 이동 */
+	color: yellow;
+	transition: 0.7s ease; /* 0.5초간 부드럽게 이동 */
 }

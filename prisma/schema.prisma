@@ -38,10 +38,12 @@ model Project {
 model Post {
   id          Int        @id @default(autoincrement())
   title       String
+  subtitle    String?    // 부제목 추가
   content     String
   type        String     @default("general") // "general", "diary", "project"
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  heroImage   String?    // 히어로 이미지 URL 추가
   project     Project?   @relation(fields: [projectId], references: [id])
   projectId   Int?
   user        User?      @relation(fields: [userId], references: [id])
@@ -50,6 +52,7 @@ model Post {
   tags        Tag[]      @relation("PostTags")
   reactions   Reaction[] @relation("PostReactions")
 }
+
 
 
 model Comment {

@@ -1,4 +1,3 @@
-// pages/jot/index.jsx
 import prisma from "../../util/database";
 import Image from "next/image";
 import Link from "next/link";
@@ -92,7 +91,7 @@ export default async function Jot() {
 								}}
 							>
 								{post.content.length > 200
-									? `${post.content.slice(0, 10)}...`
+									? `${post.content.slice(0, 40)}...`
 									: post.content}
 							</ReactMarkdown>
 						</div>

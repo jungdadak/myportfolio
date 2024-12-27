@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -38,12 +32,12 @@ model Project {
 model Post {
   id          Int        @id @default(autoincrement())
   title       String
-  subtitle    String?    // 부제목 추가
+  subtitle    String?    
   content     String
-  type        String     @default("general") // "general", "diary", "project"
+  type        String     @default("general")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  heroImage   String?    // 히어로 이미지 URL 추가
+  heroImage   String?    
   project     Project?   @relation(fields: [projectId], references: [id])
   projectId   Int?
   user        User?      @relation(fields: [userId], references: [id])
@@ -52,8 +46,6 @@ model Post {
   tags        Tag[]      @relation("PostTags")
   reactions   Reaction[] @relation("PostReactions")
 }
-
-
 
 model Comment {
   id        Int      @id @default(autoincrement())
@@ -73,7 +65,7 @@ model Tag {
 
 model Reaction {
   id        Int        @id @default(autoincrement())
-  type      String     // 이모지 때려박기
+  type      String     
   createdAt DateTime   @default(now())
   user      User?      @relation(fields: [userId], references: [id])
   userId    Int?

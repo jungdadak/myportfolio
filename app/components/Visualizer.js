@@ -32,7 +32,10 @@ export default function DigitalVisualizer() {
 	}, []);
 
 	return (
-		<div className="flex items-center mt-5 gap-1 px-4 h-[15px]">
+		<div
+			className="flex items-center mt-5 gap-1 px-4 h-[15px] "
+			style={{ pointerEvents: "none" }}
+		>
 			{bars.map((segments, barIndex) => (
 				<div key={barIndex} className="w-2 flex flex-col justify-end gap-[1px]">
 					{segments.map((intensity, segmentIndex) => {

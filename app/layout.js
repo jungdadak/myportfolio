@@ -23,12 +23,6 @@ export const metadata = {
 export default function RootLayout({ children }) {
 	return (
 		<html lang="en">
-			<head>
-				<script
-					src="https://upload-widget.cloudinary.com/global/all.js"
-					type="text/javascript"
-				/>
-			</head>
 			<body
 				className={`md:pt-[140px] pt-[250px] ${geistSans.variable} ${geistMono.variable} antialiased`}
 			>

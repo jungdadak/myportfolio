@@ -1,178 +1,175 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { CldUploadWidget } from "next-cloudinary";
-import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { okaidia } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
-export default function WritePost() {
-	const [title, setTitle] = useState("");
-	const [subtitle, setSubtitle] = useState("");
+import { useState, useEffect } from "react";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+
+// Dynamically import MDEditor and EditorMarkdown to prevent SSR issues
+const MDEditor = dynamic(
+	() => import("@uiw/react-md-editor").then((mod) => mod.default),
+	{ ssr: false }
+);
+
+const EditorMarkdown = dynamic(
+	() =>
+		import("@uiw/react-md-editor").then((mod) => {
+			return mod.default.Markdown;
+		}),
+	{ ssr: false }
+);
+
+export default function Write() {
+	const [tags, setTags] = useState([]);
+	const [projects, setProjects] = useState([]);
+	const [selectedTags, setSelectedTags] = useState([]);
+	const [selectedProject, setSelectedProject] = useState(null);
+	const [heroImage, setHeroImage] = useState(null);
 	const [content, setContent] = useState("");
-	const [imageUrl, setImageUrl] = useState(""); // 업로드된 이미지 URL
-	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
+	// Fetch tags and projects data
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const tagsRes = await axios.get("/api/tags");
+				const projectsRes = await axios.get("/api/projects");
+				setTags(tagsRes.data);
+				setProjects(projectsRes.data);
+			} catch (error) {
+				console.error("데이터 가져오기 실패:", error);
+			}
+		};
+		fetchData();
+	}, []);
 
-		setIsLoading(true);
+	// Handle hero image upload
+	const handleImageUpload = async (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		const formData = new FormData();
+		formData.append("file", file);
 
 		try {
-			// API에 데이터 전송
-			const response = await fetch("/api/post/new", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					title,
-					subtitle,
-					content,
-					heroImage: imageUrl, // 업로드된 이미지 URL 포함
-				}),
+			const res = await axios.post("/api/upload", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
 			});
-
-			const data = await response.json();
-
-			if (response.ok) {
-				alert("게시물이 성공적으로 작성되었습니다!");
-				router.push("/jot"); // 작성 후 목록으로 이동
-			} else {
-				console.error("Error:", data.error);
-				alert("게시물 작성에 실패했습니다.");
-			}
+			setHeroImage(res.data.url);
 		} catch (error) {
-			console.error("Error submitting post:", error);
-			alert("에러가 발생했습니다. 다시 시도해주세요.");
-		} finally {
-			setIsLoading(false);
+			console.error("이미지 업로드 실패:", error);
+		}
+	};
+
+	// Handle form submission
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		const title = e.target.title.value;
+		const subtitle = e.target.subtitle.value;
+
+		const postData = {
+			title,
+			subtitle,
+			content,
+			heroImage,
+			tags: selectedTags,
+			projectId: selectedProject,
+		};
+
+		try {
+			await axios.post("/api/post/new", postData);
+			// Redirect to the posts list page after successful submission
+			router.push("/jot");
+		} catch (error) {
+			console.error("게시물 작성 실패:", error);
 		}
 	};
 
 	return (
-		<main className="container mx-auto p-4 mt-[80px]">
-			<h1 className="text-3xl font-bold mb-8">게시물 작성</h1>
-			<form onSubmit={handleSubmit} className="space-y-6">
+		<div className="container mx-auto p-4">
+			<h2 className="text-3xl font-bold mb-4">Add Post!!</h2>
+			<form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+				{/* Title Input */}
+				<input
+					name="title"
+					placeholder="글제목입력하세요"
+					className="border p-2 text-2xl font-semibold text-black"
+					required
+				/>
+				{/* Subtitle Input */}
+				<input
+					name="subtitle"
+					placeholder="부제목 입력하세요"
+					className="border p-2 text-"
+				/>
+				{/* Hero Image Upload */}
 				<div>
-					<label htmlFor="title" className="block text-lg font-medium">
-						제목
-					</label>
-					<input
-						type="text"
-						id="title"
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
-						required
-						className="w-full p-2 border border-gray-300 rounded"
-					/>
-				</div>
-				<div>
-					<label htmlFor="subtitle" className="block text-lg font-medium">
-						부제목
-					</label>
-					<input
-						type="text"
-						id="subtitle"
-						value={subtitle}
-						onChange={(e) => setSubtitle(e.target.value)}
-						required
-						className="w-full p-2 border border-gray-300 rounded"
-					/>
-				</div>
-				<div>
-					<label htmlFor="content" className="block text-lg font-medium">
-						내용
-					</label>
-					<textarea
-						id="content"
-						value={content}
-						onChange={(e) => setContent(e.target.value)}
-						required
-						rows={6}
-						className="w-full p-2 border border-gray-300 rounded"
-					/>
-				</div>
-				<div>
-					<label className="block text-lg font-medium">이미지 업로드</label>
-					<CldUploadWidget
-						uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_PRESET} // Unsigned Preset
-						onUpload={(result) => setImageUrl(result.info.secure_url)}
-					>
-						{({ open }) => (
-							<button
-								type="button"
-								onClick={() => open()}
-								className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-							>
-								Upload an Image
-							</button>
-						)}
-					</CldUploadWidget>
-					{imageUrl && (
-						<img
-							src={imageUrl}
-							alt="Uploaded"
-							className="mt-4 rounded shadow"
-							width={200}
-							height={200}
-						/>
+					<label className="block mb-2">히어로 이미지 (선택)</label>
+					<input type="file" accept="image/*" onChange={handleImageUpload} />
+					{heroImage && (
+						<img src={heroImage} alt="Hero" className="mt-2 h-40 object-cover" />
 					)}
 				</div>
-
-				{/* Markdown Preview */}
-				<div className="mt-8">
-					<h2 className="text-lg font-medium mb-4">미리보기</h2>
-					<div className="p-4 border border-gray-300 rounded bg-gray-50">
-						<ReactMarkdown
-							components={{
-								code({ node, inline, className, children, ...props }) {
-									const match = /language-(\w+)/.exec(className || "");
-									return !inline && match ? (
-										<SyntaxHighlighter
-											style={okaidia}
-											language={match[1]}
-											PreTag="div"
-											{...props}
-										>
-											{String(children).replace(/\n$/, "")}
-										</SyntaxHighlighter>
-									) : (
-										<code className={className} {...props}>
-											{children}
-										</code>
-									);
-								},
-								img({ node, ...props }) {
-									return (
-										<img
-											{...props}
-											alt={props.alt || "Markdown Embedded Image"}
-											className="my-4"
-											style={{ maxWidth: "100%" }}
-										/>
-									);
-								},
-							}}
-						>
-							{content}
-						</ReactMarkdown>
-					</div>
-				</div>
-
-				<div className="flex justify-end">
-					<button
-						type="submit"
-						disabled={isLoading}
-						className={`px-6 py-2 rounded text-white ${
-							isLoading
-								? "bg-gray-400 cursor-not-allowed"
-								: "bg-blue-600 hover:bg-blue-700"
-						}`}
+				{/* Tag Selection */}
+				<div>
+					<label className="block mb-2">태그</label>
+					<select
+						multiple
+						value={selectedTags}
+						onChange={(e) =>
+							setSelectedTags(
+								Array.from(e.target.selectedOptions, (option) => parseInt(option.value))
+							)
+						}
+						className="border p-2 w-full"
 					>
-						{isLoading ? "업로드 중..." : "게시물 작성"}
-					</button>
+						{tags.map((tag) => (
+							<option key={tag.id} value={tag.id}>
+								{tag.name}
+							</option>
+						))}
+					</select>
 				</div>
+				{/* Project Selection */}
+				<div>
+					<label className="block mb-2">프로젝트</label>
+					<select
+						value={selectedProject || ""}
+						onChange={(e) => setSelectedProject(parseInt(e.target.value) || null)}
+						className="border p-2 w-full"
+					>
+						<option value="">선택 없음</option>
+						{projects.map((project) => (
+							<option key={project.id} value={project.id}>
+								{project.title}
+							</option>
+						))}
+					</select>
+				</div>
+				{/* Markdown Editor */}
+				<div>
+					<label className="block mb-2">내용</label>
+					<MDEditor
+						value={content}
+						onChange={setContent}
+						height={500}
+						previewOptions={{
+							rehypePlugins: [],
+						}}
+					/>
+				</div>
+				{/* Submit Button */}
+				<button
+					type="submit"
+					className="border border-red-400 p-2 bg-red-100 hover:bg-red-200"
+				>
+					글발사버튼
+				</button>
 			</form>
-		</main>
+			{/* Markdown Preview */}
+			<div style={{ paddingTop: 50 }}>
+				<EditorMarkdown source={content} />
+			</div>
+		</div>
 	);
 }

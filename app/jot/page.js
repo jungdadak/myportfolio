@@ -20,7 +20,9 @@ export default async function Jot() {
             Latest post : {new Date(post[0]?.createdAt).toLocaleString()}
           </h4>
         </div>
-        <Addbtn className="flex-shrink-0">글 쓰기</Addbtn>
+        <Addbtn className="flex-shrink-0" href="/jot/write">
+          글 쓰기
+        </Addbtn>
       </div>
       {post.map((post) => (
         <div

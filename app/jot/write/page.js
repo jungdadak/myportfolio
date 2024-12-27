@@ -100,7 +100,7 @@ export default function Write() {
 				<input
 					name="subtitle"
 					placeholder="부제목 입력하세요"
-					className="border p-2 text-"
+					className="border p-2 text-gray-600"
 				/>
 				{/* Hero Image Upload */}
 				<div>

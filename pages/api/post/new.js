@@ -1,4 +1,4 @@
-import prisma from "@/util/database";
+import prisma from "../../../util/database";
 export default async function handler(req, res) {
 	if (req.method == "POST") {
 		const post = await prisma.post.create({

@@ -23,6 +23,7 @@ model Project {
   id          Int        @id @default(autoincrement())
   title       String
   description String
+  imageUrl    String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   posts       Post[]
@@ -60,6 +61,7 @@ model Comment {
 model Tag {
   id    Int    @id @default(autoincrement())
   name  String @unique
+  imageUrl    String?
   posts Post[] @relation("PostTags")
 }
 

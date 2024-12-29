@@ -1,314 +1,491 @@
-// app/jot/edit/[id]/page.jsx
-'use client';
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
-import axios from 'axios';
-import { useRouter, useParams } from 'next/navigation';
-import Select from 'react-select';
-import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
+import React, { useState, useRef, useEffect } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { useRouter, useParams } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+import rehypeRaw from "rehype-raw";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { okaidia } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
-export default function Edit() {
-  const router = useRouter();
-  const params = useParams();
-  const { id } = params; // useParams를 사용하여 params를 가져옵니다.
+// DynamicSelect 컴포넌트 임포트
+import DynamicSelect from "../../../components/DynamicSelect";
 
-  const [tags, setTags] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [heroImage, setHeroImage] = useState(null);
-  const [content, setContent] = useState('');
-  const [title, setTitle] = useState('');
-  const [subtitle, setSubtitle] = useState('');
-  const [isPreview, setIsPreview] = useState(false);
+// Toolbar 컴포넌트
+const Toolbar = ({ onToolbarClick }) => (
+	<div className="flex gap-2 mb-2 p-2 bg-gray-800 rounded-t">
+		{[
+			{ icon: "B", action: "**텍스트**", tooltip: "굵게" },
+			{ icon: "I", action: "*텍스트*", tooltip: "기울임" },
+			{ icon: "H1", action: "# ", tooltip: "제목 1" },
+			{ icon: "H2", action: "## ", tooltip: "제목 2" },
+			{ icon: "H3", action: "### ", tooltip: "제목 3" },
+			{ icon: "```", action: "```", tooltip: "코드 블록" },
+			{ icon: "<>", action: "`텍스트`", tooltip: "인라인 코드" },
+			{ icon: "1.", action: "1. ", tooltip: "순서 있는 목록" },
+			{ icon: "- ", action: "- ", tooltip: "순서 없는 목록" },
+			{ icon: ">", action: "> ", tooltip: "인용" },
+			{ icon: "---", action: "\n---\n", tooltip: "구분선" },
+			{ icon: "📷", action: "![이미지](주소)", tooltip: "이미지" },
+			{ icon: "🔗", action: "[링크](주소)", tooltip: "링크" },
+			{
+				icon: "T",
+				action: "| 헤더1 | 헤더2 |\n|---|---|\n| 셀1 | 셀2 |",
+				tooltip: "테이블",
+			},
+			{ icon: "📝", action: "- [ ] ", tooltip: "체크리스트" },
+			{ icon: "👉", action: "👉 ", tooltip: "화살표" },
+			{ icon: "👍", action: "👍 ", tooltip: "좋아요" },
+			{ icon: "👎", action: "👎 ", tooltip: "싫어요" },
+			{ icon: "🎉", action: "🎉 ", tooltip: "파티" },
+		].map((item) => (
+			<button
+				key={item.icon}
+				type="button"
+				onClick={() => onToolbarClick(item.action)}
+				className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm"
+				title={item.tooltip}
+			>
+				{item.icon}
+			</button>
+		))}
+	</div>
+);
 
-  const textareaRef = useRef(null);
+export default function EditPost() {
+	const router = useRouter();
+	const params = useParams();
 
-  // 태그와 프로젝트 데이터 가져오기
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [tagsRes, projectsRes] = await Promise.all([
-          axios.get('/api/tags'),
-          axios.get('/api/projects'),
-        ]);
-        setTags(tagsRes.data);
-        setProjects(projectsRes.data);
-      } catch (error) {
-        toast.error('데이터 가져오기 실패');
-      }
-    };
-    fetchData();
-  }, []);
+	// 콘솔 로그를 통해 파라미터 확인
+	console.log("useParams:", params);
 
-  // 기존 게시물 데이터 가져오기
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const res = await axios.get(`/api/posts/${id}`);
-        const post = res.data;
-        setTitle(post.title);
-        setSubtitle(post.subtitle);
-        setContent(post.content);
-        setHeroImage(post.heroImage);
-        setSelectedTags(
-          post.tags.map((tag) => ({ value: tag.id, label: tag.name }))
-        );
-        setSelectedProject(
-          post.project
-            ? { value: post.project.id, label: post.project.title }
-            : null
-        );
-      } catch (error) {
-        toast.error('게시물 가져오기 실패');
-      }
-    };
-    if (id) {
-      fetchPost();
-    }
-  }, [id]);
+	// 파라미터 이름 확인 후 수정 (예: [id].js 이면 params.id 사용)
+	const postId = params.id || params.detail; // 라우트에 맞게 수정
 
-  // 태그 및 프로젝트 옵션 변환
-  const tagOptions = tags.map((tag) => ({ value: tag.id, label: tag.name }));
-  const projectOptions = projects.map((project) => ({
-    value: project.id,
-    label: project.title,
-  }));
+	// 상태 관리
+	const [heroImage, setHeroImage] = useState(null);
+	const [title, setTitle] = useState("");
+	const [subtitle, setSubtitle] = useState("");
+	const [content, setContent] = useState("");
+	const [isPreview, setIsPreview] = useState(false);
+	const [tagsOptions, setTagsOptions] = useState([]);
+	const [selectedTags, setSelectedTags] = useState([]);
+	const [projectsOptions, setProjectsOptions] = useState([]);
+	const [selectedProject, setSelectedProject] = useState(null);
+	const textareaRef = useRef(null);
+	const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
 
-  // 이미지 업로드 처리 및 마크다운 삽입
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+	// 게시글 데이터 및 태그/프로젝트 데이터 불러오기
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				// 태그와 프로젝트 데이터를 병렬로 불러오기
+				const [tagsRes, projectsRes] = await Promise.all([
+					axios.get("/api/tags"),
+					axios.get("/api/projects"),
+				]);
 
-    const formData = new FormData();
-    formData.append('file', file);
+				const tagOptions = tagsRes.data.map((tag) => ({
+					value: tag.id,
+					label: tag.name,
+				}));
+				setTagsOptions(tagOptions);
 
-    try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const imageUrl = res.data.url;
-      setHeroImage(imageUrl);
-      insertAtCursor(`![이미지](${imageUrl})`);
-      toast.success('이미지 업로드 성공');
-    } catch (error) {
-      toast.error(error.response?.data?.error || '이미지 업로드 실패');
-    }
-  };
+				const projectOptions = projectsRes.data.map((project) => ({
+					value: project.id,
+					label: project.title,
+				}));
+				setProjectsOptions(projectOptions);
 
-  // 커서 위치에 텍스트 삽입
-  const insertAtCursor = (text) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+				// 게시글 데이터 불러오기
+				const postRes = await axios.get(`/api/posts/${postId}`);
+				const post = postRes.data;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = content.substring(0, start);
-    const after = content.substring(end, content.length);
-    const newContent = before + text + after;
-    setContent(newContent);
+				setTitle(post.title);
+				setSubtitle(post.subtitle || "");
+				setContent(post.content);
+				setHeroImage(post.heroImage || null);
+				setSelectedTags(
+					post.tags.map((tag) => ({
+						value: tag.id,
+						label: tag.name,
+					}))
+				);
+				setSelectedProject(
+					post.project ? { value: post.project.id, label: post.project.title } : null
+				);
+			} catch (error) {
+				console.error("데이터 로드 실패:", error);
+				toast.error("데이터를 불러오지 못했습니다.");
+			} finally {
+				setIsLoading(false);
+			}
+		};
 
-    // 커서 위치 조정
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = textarea.selectionEnd = start + text.length;
-    }, 0);
-  };
+		if (postId) {
+			fetchData();
+		}
+	}, [postId]);
 
-  // 폼 제출 처리 (Update)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+	// 툴바 클릭 시 텍스트 삽입
+	const handleToolbarClick = (action) => {
+		insertAtCursor(action);
+	};
 
-    // 필수 필드 검증
-    if (!title || !content) {
-      toast.error('제목과 내용을 입력하세요.');
-      return;
-    }
+	// 히어로 이미지 업로드 핸들러
+	const handleHeroImageUpload = async (e) => {
+		const files = e.target.files;
+		if (!files || files.length === 0) return;
 
-    const postData = {
-      title,
-      subtitle,
-      content,
-      heroImage,
-      tags: selectedTags.map((tag) => tag.value),
-      projectId: selectedProject ? selectedProject.value : null,
-    };
+		const formData = new FormData();
+		formData.append("file", files[0]);
 
-    try {
-      // 글 수정
-      await axios.put(`/api/posts/${id}`, postData);
-      toast.success('성공적으로 수정되었습니다!');
-      setTimeout(() => {
-        router.push(`/jot/${id}`);
-      }, 1000);
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || '게시물 수정 실패';
-      console.error('게시물 수정 실패:', error);
-      toast.error(errorMessage);
-    }
-  };
+		try {
+			const res = await axios.post("/api/upload", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
+			setHeroImage(res.data.url);
+			toast.success("히어로 이미지 업로드 성공");
+		} catch (error) {
+			console.error("히어로 이미지 업로드 실패:", error);
+			toast.error("히어로 이미지 업로드 실패");
+		}
+	};
 
-  // 임시 저장 기능
-  const handleSaveDraft = async () => {
-    const draftData = {
-      title,
-      subtitle,
-      content,
-      heroImage,
-      tags: selectedTags.map((tag) => tag.value),
-      projectId: selectedProject ? selectedProject.value : null,
-    };
+	// 이미지 드롭 또는 붙여넣기 핸들러
+	const handleImageDropOrPaste = async (e) => {
+		e.preventDefault();
 
-    try {
-      await axios.post('/api/posts/draft', draftData);
-      toast.success('초안이 저장되었습니다.');
-    } catch (error) {
-      toast.error('초안 저장에 실패했습니다.');
-    }
-  };
+		const files = e.dataTransfer?.files || e.clipboardData?.files;
+		console.log("Pasted Files:", files); // 디버깅용 로그
 
-  // 미리보기 토글
-  const togglePreview = () => {
-    setIsPreview(!isPreview);
-  };
+		if (files && files.length > 0) {
+			const file = files[0];
+			const fileType = file.type;
+			console.log("File Type:", fileType); // 디버깅용 로그
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <Toaster position="top-right" />
-      <h2 className="text-4xl font-bold mb-6 text-center">글 수정하기</h2>
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
-        {/* 제목 및 히어로 이미지 레이아웃 */}
-        <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-8">
-          {heroImage && (
-            <div className="mb-4 md:mb-0">
-              <img
-                src={heroImage}
-                alt="Hero"
-                className="rounded-full object-cover w-24 h-24"
-              />
-            </div>
-          )}
-          <div className="flex-1">
-            <label htmlFor="title" className="block text-xl font-semibold mb-2">
-              제목
-            </label>
-            <input
-              id="title"
-              name="title"
-              placeholder="글 제목을 입력하세요"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-        </div>
+			if (fileType && fileType.startsWith("image/")) {
+				const formData = new FormData();
+				formData.append("file", file);
 
-        {/* 부제목 입력 */}
-        <div>
-          <label
-            htmlFor="subtitle"
-            className="block text-xl font-semibold mb-2"
-          >
-            부제목
-          </label>
-          <input
-            id="subtitle"
-            name="subtitle"
-            placeholder="부제목을 입력하세요"
-            value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
-            className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+				try {
+					const res = await axios.post("/api/upload", formData, {
+						headers: { "Content-Type": "multipart/form-data" },
+					});
+					// 마크다운 이미지 문법으로 변경
+					insertAtCursor(`![이미지](${res.data.url})\n\n`);
+					toast.success("이미지 삽입 성공");
+				} catch (error) {
+					console.error("이미지 삽입 실패:", error);
+					toast.error("이미지 삽입 실패");
+				}
+				return;
+			}
+		}
 
-        {/* 태그 선택 */}
-        <div>
-          <label className="block text-xl font-semibold mb-2">태그</label>
-          <Select
-            isMulti
-            options={tagOptions}
-            value={selectedTags}
-            onChange={setSelectedTags}
-            className="select-container"
-            classNamePrefix="select"
-            placeholder="태그를 선택하세요..."
-          />
-        </div>
+		// 데이터 URL 형태의 이미지 처리
+		const text = e.clipboardData?.getData("text");
+		if (text) {
+			const dataUrlMatch = text.match(/^data:image\/(png|jpeg|jpg);base64,/);
+			if (dataUrlMatch) {
+				// 데이터 URL을 서버로 전송하여 이미지 URL을 얻는 로직
+				try {
+					const res = await axios.post("/api/upload-data-url", { dataUrl: text });
+					insertAtCursor(`![이미지](${res.data.url})\n\n`);
+					toast.success("이미지 삽입 성공");
+				} catch (error) {
+					console.error("데이터 URL 이미지 삽입 실패:", error);
+					toast.error("데이터 URL 이미지 삽입 실패");
+				}
+			} else {
+				// 일반 텍스트 삽입
+				insertAtCursor(text);
+			}
+		}
+	};
 
-        {/* 프로젝트 선택 */}
-        <div>
-          <label className="block text-xl font-semibold mb-2">프로젝트</label>
-          <Select
-            options={projectOptions}
-            value={selectedProject}
-            onChange={setSelectedProject}
-            isClearable
-            className="select-container"
-            classNamePrefix="select"
-            placeholder="프로젝트를 선택하세요..."
-          />
-        </div>
+	// 텍스트 삽입 함수 (상태 기반)
+	const insertAtCursor = (text) => {
+		if (!textareaRef.current) {
+			console.error("textareaRef.current is null in insertAtCursor");
+			toast.error("텍스트 에어리어에 접근할 수 없습니다.");
+			return;
+		}
 
-        {/* 마크다운 입력 및 미리보기 토글 */}
-        <div>
-          <label htmlFor="content" className="block text-xl font-semibold mb-2">
-            내용
-          </label>
-          {!isPreview ? (
-            <textarea
-              id="content"
-              name="content"
-              placeholder="내용을 입력하세요..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              ref={textareaRef}
-              className="w-full p-3 bg-gray-800 border border-gray-700 rounded h-96 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          ) : (
-            <div className="w-full p-3 bg-gray-800 border border-gray-700 rounded h-96 overflow-auto">
-              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                {content || '내용이 없습니다.'}
-              </ReactMarkdown>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={togglePreview}
-            className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold"
-          >
-            {isPreview ? '편집하기' : '미리보기'}
-          </button>
-        </div>
+		const textarea = textareaRef.current;
+		const start = textarea.selectionStart;
+		const end = textarea.selectionEnd;
+		const value = content; // 상태에서 현재 값을 가져옴
+		const newValue = value.substring(0, start) + text + value.substring(end);
+		setContent(newValue); // 상태 업데이트
 
-        {/* 이미지 삽입 버튼 */}
-        <div>
-          <label className="block text-xl font-semibold mb-2">
-            이미지 삽입
-          </label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
-        </div>
+		// 커서 위치 설정
+		setTimeout(() => {
+			textarea.focus();
+			textarea.selectionStart = textarea.selectionEnd = start + text.length;
+		}, 0);
+	};
 
-        {/* 버튼 그룹 */}
-        <div className="flex justify-between">
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            className="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 rounded text-black font-semibold transition duration-300"
-          >
-            임시 저장
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white font-semibold transition duration-300"
-          >
-            글 발사버튼
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+	// 폼 제출 핸들러 (글 수정)
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		const currentContent = content; // 상태에서 현재 값을 가져옴
+		if (!title || !currentContent) {
+			toast.error("제목과 내용을 입력하세요.");
+			return;
+		}
+
+		const tagIds = selectedTags.map((tag) => tag.value);
+		const projectId = selectedProject ? selectedProject.value : null;
+
+		try {
+			await axios.put(`/api/posts/${postId}`, {
+				title,
+				subtitle,
+				content: currentContent,
+				heroImage,
+				tags: tagIds,
+				projectId,
+			});
+			toast.success("글 수정 성공");
+			router.push("/jot");
+		} catch (error) {
+			console.error("글 수정 실패:", error);
+			toast.error("글 수정 실패");
+		}
+	};
+
+	// 임시 저장 핸들러
+	const handleSaveDraft = async () => {
+		if (!content) {
+			toast.error("내용이 비어있습니다.");
+			return;
+		}
+
+		if (!title || !content) {
+			toast.error("제목과 내용을 입력하세요.");
+			return;
+		}
+
+		const tagIds = selectedTags.map((tag) => tag.value);
+		const projectId = selectedProject ? selectedProject.value : null;
+
+		try {
+			await axios.post("/api/posts/draft", {
+				title,
+				subtitle,
+				content,
+				heroImage,
+				tags: tagIds,
+				projectId,
+			});
+			toast.success("초안 저장 성공");
+			router.push("/jot");
+		} catch (error) {
+			console.error("초안 저장 실패:", error);
+			toast.error("초안 저장 실패");
+		}
+	};
+
+	// 취소 핸들러
+	const handleCancel = () => {
+		if (
+			confirm("작성 중인 내용을 취소하시겠습니까? 모든 변경 사항이 사라집니다.")
+		) {
+			// 폼 초기화
+			setTitle("");
+			setSubtitle("");
+			setHeroImage(null);
+			setSelectedTags([]);
+			setSelectedProject(null);
+			setContent("");
+			toast.success("작성 취소되었습니다.");
+			router.push("/jot");
+		}
+	};
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+				<p className="text-xl">로딩 중...</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="min-h-screen bg-gray-900 text-white p-6">
+			<Toaster position="top-right" />
+			<h2 className="text-4xl font-bold mb-6 text-center">글 수정하기</h2>
+			<form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+				{/* 제목 입력 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">제목</label>
+					<input
+						type="text"
+						value={title}
+						onChange={(e) => setTitle(e.target.value)}
+						placeholder="제목을 입력하세요"
+						className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+					/>
+				</div>
+
+				{/* 부제목 입력 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">부제목</label>
+					<input
+						type="text"
+						value={subtitle}
+						onChange={(e) => setSubtitle(e.target.value)}
+						placeholder="부제목을 입력하세요"
+						className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
+					/>
+				</div>
+
+				{/* 히어로 이미지 업로드 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">히어로 이미지</label>
+					<div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center">
+						<input
+							type="file"
+							accept="image/*"
+							onChange={handleHeroImageUpload}
+							className="w-full text-gray-400"
+						/>
+						{heroImage && (
+							<img
+								src={heroImage}
+								alt="Hero"
+								className="mt-4 w-full h-64 object-cover rounded"
+							/>
+						)}
+					</div>
+				</div>
+
+				{/* 태그 선택 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">태그</label>
+					<DynamicSelect
+						isMulti
+						options={tagsOptions}
+						value={selectedTags}
+						onChange={setSelectedTags}
+						className="w-full"
+						placeholder="태그를 선택하세요"
+					/>
+				</div>
+
+				{/* 프로젝트 선택 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">프로젝트</label>
+					<DynamicSelect
+						options={projectsOptions}
+						value={selectedProject}
+						onChange={setSelectedProject}
+						isClearable
+						className="w-full"
+						placeholder="프로젝트를 선택하세요"
+					/>
+				</div>
+
+				{/* 내용 입력 및 미리보기 */}
+				<div>
+					<label className="block text-xl font-semibold mb-2">내용</label>
+					<div className="bg-gray-800 border border-gray-700 rounded">
+						<Toolbar onToolbarClick={handleToolbarClick} />
+						{!isPreview ? (
+							<textarea
+								ref={textareaRef}
+								onDrop={handleImageDropOrPaste}
+								onPaste={handleImageDropOrPaste}
+								placeholder="내용을 입력하세요"
+								className="w-full p-3 bg-gray-800 rounded-b h-96 focus:outline-none resize-none"
+								value={content}
+								onChange={(e) => setContent(e.target.value)}
+							/>
+						) : (
+							<div className="w-full p-3 h-96 overflow-auto prose prose-invert max-w-none">
+								<ReactMarkdown
+									rehypePlugins={[rehypeRaw, rehypeSanitize]}
+									components={{
+										code({ node, inline, className, children, ...props }) {
+											const match = /language-(\w+)/.exec(className || "");
+											return !inline && match ? (
+												<div className="relative rounded-xl overflow-hidden my-6">
+													<div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+														<span className="text-sm font-medium text-gray-300">
+															{match[1].toUpperCase()}
+														</span>
+													</div>
+													<SyntaxHighlighter
+														style={okaidia}
+														language={match[1]}
+														PreTag="pre"
+														className="!m-0 !bg-gray-900"
+														{...props}
+													>
+														{String(children).replace(/\n$/, "")}
+													</SyntaxHighlighter>
+												</div>
+											) : (
+												<code className="bg-gray-800 rounded px-1 py-0.5" {...props}>
+													{children}
+												</code>
+											);
+										},
+										img({ node, ...props }) {
+											return (
+												<img
+													{...props}
+													alt={props.alt || "Content Image"}
+													className="rounded-lg shadow-lg max-w-full h-auto mx-auto"
+													loading="lazy"
+												/>
+											);
+										},
+									}}
+								>
+									{content}
+								</ReactMarkdown>
+							</div>
+						)}
+					</div>
+					<div className="flex justify-between mt-3">
+						<button
+							type="button"
+							onClick={handleSaveDraft}
+							className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded"
+						>
+							임시 저장
+						</button>
+						<button
+							type="button"
+							onClick={handleCancel}
+							className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
+						>
+							취소
+						</button>
+						<button
+							type="button"
+							onClick={() => setIsPreview(!isPreview)}
+							className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
+						>
+							{isPreview ? "편집하기" : "미리보기"}
+						</button>
+					</div>
+				</div>
+
+				{/* 제출 버튼 */}
+				<div className="flex justify-end">
+					<button
+						type="submit"
+						className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-white"
+					>
+						글 수정하기
+					</button>
+				</div>
+			</form>
+		</div>
+	);
 }

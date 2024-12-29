@@ -2,7 +2,8 @@ import prisma from '../../util/database';
 import Image from 'next/image';
 import Link from 'next/link';
 import Addbtn from '../components/Addbtn';
-import { FaTags } from 'react-icons/fa';
+import DeleteButton from '../components/DeleteButton';
+import { FaTags, FaEdit } from 'react-icons/fa';
 
 export default async function Jot() {
   const posts = await prisma.post.findMany({
@@ -39,19 +40,15 @@ export default async function Jot() {
           key={post.id}
           className="relative border border-gray-300 rounded-lg shadow-md overflow-hidden mb-4"
         >
-          {/* 우상단 프로젝트 및 태그 이미지 */}
+          {/* Project and Tag Images - Same as before */}
           {(() => {
             const imageList = [];
-
-            // 1. 프로젝트 이미지 추가
             if (post.project?.imageUrl) {
               imageList.push({
                 src: post.project.imageUrl,
                 alt: post.project.title,
               });
             }
-
-            // 2. 태그 이미지 추가
             post.tags
               .filter((tag) => tag.imageUrl)
               .forEach((tag) => {
@@ -61,16 +58,9 @@ export default async function Jot() {
                 });
               });
 
-            // 이미지가 있을 경우만 렌더링
             if (imageList.length > 0) {
               return (
-                <div
-                  className="
-                    absolute top-0 right-0 flex flex-row-reverse gap-2 
-                    bg-black bg-opacity-70 backdrop-blur-md 
-                    p-2 rounded-md z-10
-                  "
-                >
+                <div className="absolute top-0 right-0 flex flex-row-reverse gap-2 bg-black bg-opacity-70 backdrop-blur-md p-2 rounded-md z-10">
                   {Array.from({ length: 3 }).map((_, index) => {
                     const image = imageList[2 - index];
                     return (
@@ -100,9 +90,9 @@ export default async function Jot() {
             return null;
           })()}
 
-          {/* 상단 이미지 및 텍스트 영역 */}
+          {/* Main Content Area */}
           <div className="flex flex-col md:flex-row">
-            {/* 이미지 영역 */}
+            {/* Image Area */}
             <div className="flex-shrink-0 p-2 bg-black bg-opacity-60 rounded-l-lg">
               <Image
                 src={post.heroImage || '/default-image.jpg'}
@@ -115,7 +105,7 @@ export default async function Jot() {
               />
             </div>
 
-            {/* 텍스트 영역 */}
+            {/* Text Area */}
             <div className="flex flex-col flex-grow p-4 bg-gray-50">
               <Link
                 href={`/jot/${post.id}`}
@@ -134,16 +124,9 @@ export default async function Jot() {
             </div>
           </div>
 
-          {/* 하단 검은 유리 스타일 영역 */}
-          <div
-            className="
-              bg-black bg-opacity-70 
-              backdrop-filter backdrop-blur-md 
-              text-white p-3 
-              flex justify-between items-center
-            "
-          >
-            {/* 작성자 및 작성일 */}
+          {/* Bottom Area */}
+          <div className="bg-black bg-opacity-70 backdrop-filter backdrop-blur-md text-white p-3 flex justify-between items-center">
+            {/* Author and Date */}
             <small className="text-sm text-gray-300">
               작성자: {post.user?.name || '익명'}
               <span className="ml-4">
@@ -151,17 +134,31 @@ export default async function Jot() {
               </span>
             </small>
 
-            {/* 태그 */}
-            <div className="flex space-x-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="text-xs flex items-center space-x-1 bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+            {/* Tags and Edit/Delete Buttons */}
+            <div className="flex items-center space-x-4">
+              <div className="flex space-x-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="text-xs flex items-center space-x-1 bg-gray-200 text-gray-700 px-2 py-1 rounded-full"
+                  >
+                    <FaTags className="w-3 h-3 text-gray-500" />
+                    <span>{tag.name}</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Edit/Delete Buttons */}
+              <div className="flex gap-2 ml-2">
+                <Link
+                  href={`/jot/edit/${post.id}`}
+                  className="text-white hover:text-gray-300"
+                  title="수정"
                 >
-                  <FaTags className="w-4 h-4 text-gray-500" />
-                  <span>{tag.name}</span>
-                </span>
-              ))}
+                  <FaEdit className="w-3 h-3" />
+                </Link>
+                <DeleteButton postId={post.id} />
+              </div>
             </div>
           </div>
         </div>

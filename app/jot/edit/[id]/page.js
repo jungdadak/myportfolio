@@ -1,15 +1,19 @@
-// app/jot/write/page.jsx
+// app/jot/edit/[id]/page.jsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import Select from 'react-select';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 
-export default function Write() {
+export default function Edit() {
+  const router = useRouter();
+  const params = useParams();
+  const { id } = params; // useParams를 사용하여 params를 가져옵니다.
+
   const [tags, setTags] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -19,7 +23,6 @@ export default function Write() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [isPreview, setIsPreview] = useState(false);
-  const router = useRouter();
 
   const textareaRef = useRef(null);
 
@@ -39,6 +42,33 @@ export default function Write() {
     };
     fetchData();
   }, []);
+
+  // 기존 게시물 데이터 가져오기
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await axios.get(`/api/posts/${id}`);
+        const post = res.data;
+        setTitle(post.title);
+        setSubtitle(post.subtitle);
+        setContent(post.content);
+        setHeroImage(post.heroImage);
+        setSelectedTags(
+          post.tags.map((tag) => ({ value: tag.id, label: tag.name }))
+        );
+        setSelectedProject(
+          post.project
+            ? { value: post.project.id, label: post.project.title }
+            : null
+        );
+      } catch (error) {
+        toast.error('게시물 가져오기 실패');
+      }
+    };
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
 
   // 태그 및 프로젝트 옵션 변환
   const tagOptions = tags.map((tag) => ({ value: tag.id, label: tag.name }));
@@ -87,7 +117,7 @@ export default function Write() {
     }, 0);
   };
 
-  // 폼 제출 처리 (Create)
+  // 폼 제출 처리 (Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -107,15 +137,15 @@ export default function Write() {
     };
 
     try {
-      // 새 글 생성
-      await axios.post('/api/posts', postData);
-      toast.success('성공적으로 작성되었습니다!');
+      // 글 수정
+      await axios.put(`/api/posts/${id}`, postData);
+      toast.success('성공적으로 수정되었습니다!');
       setTimeout(() => {
-        router.push('/jot');
+        router.push(`/jot/${id}`);
       }, 1000);
     } catch (error) {
-      const errorMessage = error.response?.data?.error || '게시물 작성 실패';
-      console.error('게시물 작성 실패:', error);
+      const errorMessage = error.response?.data?.error || '게시물 수정 실패';
+      console.error('게시물 수정 실패:', error);
       toast.error(errorMessage);
     }
   };
@@ -147,22 +177,33 @@ export default function Write() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       <Toaster position="top-right" />
-      <h2 className="text-4xl font-bold mb-6 text-center">글 작성하기</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center">글 수정하기</h2>
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
-        {/* 제목 입력 */}
-        <div>
-          <label htmlFor="title" className="block text-xl font-semibold mb-2">
-            제목
-          </label>
-          <input
-            id="title"
-            name="title"
-            placeholder="글 제목을 입력하세요"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+        {/* 제목 및 히어로 이미지 레이아웃 */}
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-8">
+          {heroImage && (
+            <div className="mb-4 md:mb-0">
+              <img
+                src={heroImage}
+                alt="Hero"
+                className="rounded-full object-cover w-24 h-24"
+              />
+            </div>
+          )}
+          <div className="flex-1">
+            <label htmlFor="title" className="block text-xl font-semibold mb-2">
+              제목
+            </label>
+            <input
+              id="title"
+              name="title"
+              placeholder="글 제목을 입력하세요"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
         </div>
 
         {/* 부제목 입력 */}
@@ -181,30 +222,6 @@ export default function Write() {
             onChange={(e) => setSubtitle(e.target.value)}
             className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
-
-        {/* 히어로 이미지 업로드 */}
-        <div>
-          <label
-            htmlFor="heroImage"
-            className="block text-xl font-semibold mb-2"
-          >
-            히어로 이미지 (선택)
-          </label>
-          <input
-            id="heroImage"
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="w-full text-gray-400"
-          />
-          {heroImage && (
-            <img
-              src={heroImage}
-              alt="Hero"
-              className="mt-4 w-full h-64 object-cover rounded"
-            />
-          )}
         </div>
 
         {/* 태그 선택 */}

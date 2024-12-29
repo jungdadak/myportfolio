@@ -3,53 +3,82 @@
 @tailwind utilities;
 
 :root {
-	--background: #101010;
-	--foreground: #ededed;
+  --background: #101010;
+  --foreground: #ededed;
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
-		--background: #0a0a0a;
-		--foreground: #ededed;
-	}
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-	color: var(--foreground);
-	background: var(--background);
-	font-family: Arial, Helvetica, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.react-select-container {
+  width: 100%;
 }
 
+.react-select__control {
+  @apply border rounded p-2;
+}
+
+.react-select__menu {
+  @apply border rounded mt-1;
+}
+
+.react-select__option {
+  @apply p-2;
+}
+
+.react-select__option--is-focused {
+  @apply bg-blue-100;
+}
+
+.react-select__option--is-selected {
+  @apply bg-blue-200;
+}
+/* Markdown 콘텐츠 내 이미지 스타일 조정 */
+.prose-img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+}
 .navbar-bg {
-	background: #101010;
-	color: yellow;
-	font-size: x-large;
-	padding: 20px 0; /* 상하단 여백만 */
-	position: fixed;
-	width: 100%;
-	z-index: 1000;
+  background: #101010;
+  color: yellow;
+  font-size: x-large;
+  padding: 20px 0; /* 상하단 여백만 */
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
 }
 .shimmer-text {
-	display: inline-block; /* 텍스트 폭만큼만 영역 */
-	position: relative;
-	color: transparent; /* 글자 자체는 투명 처리 */
-	background: linear-gradient(
-		to right,
-		#ffffff 0%,
-		#ffffff 10%,
-		#f2abdd 50%,
-		/* 중간에 다른 포인트 색상 (핑크 등) */ #ffffff 90%,
-		#ffffff 100%
-	);
-	background-size: 200%; /* 넉넉히 잡아서 움직임을 줄 공간 */
-	background-position: left center; /* 초기값: 왼쪽에서 시작 */
-	-webkit-background-clip: text; /* 배경을 글자 영역에만 보이게 */
-	background-clip: text; /* 파이어폭스 등 호환성 위해 선언 */
-	transition: none; /* 기본 상태에서는 애니메이션 없음 */
+  display: inline-block; /* 텍스트 폭만큼만 영역 */
+  position: relative;
+  color: transparent; /* 글자 자체는 투명 처리 */
+  background: linear-gradient(
+    to right,
+    #ffffff 0%,
+    #ffffff 10%,
+    #f2abdd 50%,
+    /* 중간에 다른 포인트 색상 (핑크 등) */ #ffffff 90%,
+    #ffffff 100%
+  );
+  background-size: 200%; /* 넉넉히 잡아서 움직임을 줄 공간 */
+  background-position: left center; /* 초기값: 왼쪽에서 시작 */
+  -webkit-background-clip: text; /* 배경을 글자 영역에만 보이게 */
+  background-clip: text; /* 파이어폭스 등 호환성 위해 선언 */
+  transition: none; /* 기본 상태에서는 애니메이션 없음 */
 }
 
 /* 2) 호버 시 */
 .shimmer-text:hover {
-	color: yellow;
-	transition: 0.7s ease; /* 0.5초간 부드럽게 이동 */
+  color: yellow;
+  transition: 0.7s ease; /* 0.5초간 부드럽게 이동 */
 }

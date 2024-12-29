@@ -21,7 +21,7 @@ const AddbtnExample = ({ className, children, href = '/add-post' }) => {
       <button
         onClick={handleSolidClick}
         disabled={isLoading}
-        className={`flex items-center bg-violet-600 hover:bg-violet-700 text-white px-5 py-2.5 rounded-lg
+        className={`flex items-center border hover:text-black hover:bg-white text-white px-1 py-1 rounded-lg
           shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 text-sm font-medium
           ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
         aria-label={children ? children.toString() : '새 항목 추가'}

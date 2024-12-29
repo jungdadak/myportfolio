@@ -29,16 +29,19 @@ export default async function Jot({ searchParams: initialSearchParams }) {
         <div className="relative bg-black bg-opacity-50 backdrop-blur-md p-4 rounded-lg shadow-lg">
           <h1 className="text-3xl font-bold text-white">
             POSTS : {posts.length}
-          </h1>
-          {posts.length > 0 && (
-            <h4 className="text-lg text-white">
-              Latest post : {new Date(posts[0].createdAt).toLocaleString()}
-            </h4>
-          )}
+          </h1>{' '}
+          <div className="flex items-center justify-between gap-10 mt-4">
+            {' '}
+            {posts.length > 0 && (
+              <h4 className="text-md md:text-lg text-white">
+                Latest post : {new Date(posts[0].createdAt).toLocaleString()}
+              </h4>
+            )}{' '}
+            <Addbtn className="flex-shrink-0 " href="/jot/write">
+              글 쓰기
+            </Addbtn>
+          </div>
         </div>
-        <Addbtn className="flex-shrink-0" href="/jot/write">
-          글 쓰기
-        </Addbtn>
       </div>
 
       {/* 글 목록 */}

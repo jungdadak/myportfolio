@@ -64,6 +64,12 @@ export default function Navbar() {
               <Link href="/jot" className="shimmer-text">
                 Jot Log
               </Link>
+              <Link
+                href="/study"
+                className="shimmer-text text-yellow-300 whitespace-nowrap"
+              >
+                Study Log
+              </Link>
             </div>
 
             <div className="flex items-center whitespace-nowrap">

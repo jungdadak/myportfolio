@@ -112,6 +112,12 @@ export default function Navbar() {
             >
               Jot Log
             </Link>
+            <Link
+              href="/study"
+              className="shimmer-text text-yellow-300 whitespace-nowrap"
+            >
+              Study Log
+            </Link>
 
             <div className="flex items-center w-full max-w-sm px-4">
               <input

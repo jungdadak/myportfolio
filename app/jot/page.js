@@ -5,17 +5,23 @@ import Addbtn from '../components/Addbtn';
 import DeleteButton from '../components/DeleteButton';
 import { FaTags, FaEdit } from 'react-icons/fa';
 
-export default async function Jot() {
+export default async function Jot({ searchParams: initialSearchParams }) {
+  // searchParams를 비동기로 처리
+  const searchParams = await initialSearchParams;
+
+  const page = parseInt(searchParams?.page || '1', 10); // 현재 페이지 번호
+  const pageSize = 6; // 한 페이지당 표시할 글 개수
+
+  // 글 데이터 가져오기
   const posts = await prisma.post.findMany({
-    orderBy: {
-      createdAt: 'desc',
-    },
-    include: {
-      tags: true,
-      project: true,
-      user: true,
-    },
+    skip: (page - 1) * pageSize, // 스킵할 글의 개수
+    take: pageSize, // 가져올 글의 개수
+    orderBy: { createdAt: 'desc' }, // 최신 순
+    include: { tags: true, project: true, user: true }, // 연관 데이터 포함
   });
+
+  const totalPosts = await prisma.post.count(); // 전체 글 개수
+  const totalPages = Math.ceil(totalPosts / pageSize); // 전체 페이지 수 계산
 
   return (
     <main className="container mx-auto p-4 mt-[80px] max-w-[60rem]">
@@ -35,12 +41,12 @@ export default async function Jot() {
         </Addbtn>
       </div>
 
+      {/* 글 목록 */}
       {posts.map((post) => (
         <div
           key={post.id}
           className="relative border border-gray-300 rounded-lg shadow-md overflow-hidden mb-4"
         >
-          {/* Project and Tag Images - Same as before */}
           {(() => {
             const imageList = [];
             if (post.project?.imageUrl) {
@@ -90,9 +96,7 @@ export default async function Jot() {
             return null;
           })()}
 
-          {/* Main Content Area */}
           <div className="flex flex-col md:flex-row">
-            {/* Image Area */}
             <div className="flex-shrink-0 p-2 bg-black bg-opacity-60 rounded-l-lg">
               <Image
                 src={post.heroImage || '/default-image.jpg'}
@@ -105,7 +109,6 @@ export default async function Jot() {
               />
             </div>
 
-            {/* Text Area */}
             <div className="flex flex-col flex-grow p-4 bg-gray-50">
               <Link
                 href={`/jot/${post.id}`}
@@ -124,17 +127,13 @@ export default async function Jot() {
             </div>
           </div>
 
-          {/* Bottom Area */}
           <div className="bg-black bg-opacity-70 backdrop-filter backdrop-blur-md text-white p-3 flex justify-between items-center">
-            {/* Author and Date */}
             <small className="text-sm text-gray-300">
               작성자: {post.user?.name || '익명'}
               <span className="ml-4">
                 작성일: {new Date(post.createdAt).toLocaleString()}
               </span>
             </small>
-
-            {/* Tags and Edit/Delete Buttons */}
             <div className="flex items-center space-x-4">
               <div className="flex space-x-2">
                 {post.tags.map((tag) => (
@@ -147,8 +146,6 @@ export default async function Jot() {
                   </span>
                 ))}
               </div>
-
-              {/* Edit/Delete Buttons */}
               <div className="flex gap-2 ml-2">
                 <Link
                   href={`/jot/edit/${post.id}`}
@@ -163,6 +160,37 @@ export default async function Jot() {
           </div>
         </div>
       ))}
+
+      {/* 페이지네이션 버튼 */}
+      <div className="flex justify-between items-center mt-8">
+        {page > 1 ? (
+          <Link
+            href={`?page=${page - 1}`}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            이전
+          </Link>
+        ) : (
+          <div className="px-4 py-2 bg-gray-300 rounded cursor-not-allowed">
+            이전
+          </div>
+        )}
+        <span className="text-gray-700">
+          {page} / {totalPages}
+        </span>
+        {page < totalPages ? (
+          <Link
+            href={`?page=${page + 1}`}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            다음
+          </Link>
+        ) : (
+          <div className="px-4 py-2 bg-gray-300 rounded cursor-not-allowed">
+            다음
+          </div>
+        )}
+      </div>
     </main>
   );
 }

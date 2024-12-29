@@ -12,7 +12,7 @@ import toast, { Toaster } from 'react-hot-toast';
 export default async function Detail({ params }) {
   const { detail } = await params; // params는 이제 Promise입니다.
 
-  // 게시물 데이터 가져오기
+  // 게시물 데이터 가져오기git
   const post = await prisma.post.findUnique({
     where: { id: Number(detail) },
     include: { tags: true, project: true },

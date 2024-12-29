@@ -162,34 +162,57 @@ export default async function Jot({ searchParams: initialSearchParams }) {
       ))}
 
       {/* 페이지네이션 버튼 */}
-      <div className="flex justify-between items-center mt-8">
-        {page > 1 ? (
-          <Link
-            href={`?page=${page - 1}`}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            이전
-          </Link>
-        ) : (
-          <div className="px-4 py-2 bg-gray-300 rounded cursor-not-allowed">
-            이전
-          </div>
-        )}
-        <span className="text-gray-700">
-          {page} / {totalPages}
-        </span>
-        {page < totalPages ? (
-          <Link
-            href={`?page=${page + 1}`}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            다음
-          </Link>
-        ) : (
-          <div className="px-4 py-2 bg-gray-300 rounded cursor-not-allowed">
-            다음
-          </div>
-        )}
+      <div className="flex justify-center items-center mt-8 space-x-2">
+        <Link
+          href={`?page=1`}
+          className={`px-4 py-2 rounded ${
+            page > 1 ? 'hover:underline' : 'cursor-not-allowed text-white'
+          }`}
+          aria-disabled={page <= 1}
+          style={{
+            textShadow:
+              '1px 1px 0 black, -1px 1px 0 black, 1px -1px 0 black, -1px -1px 0 black',
+          }}
+        >
+          처음으로
+        </Link>
+        {[...Array(totalPages)].map((_, index) => {
+          const pageNum = index + 1;
+          return (
+            <Link
+              key={pageNum}
+              href={`?page=${pageNum}`}
+              className={`px-2 py-1 border ${
+                page === pageNum
+                  ? 'border-black bg-black text-white font-thin rounded-full'
+                  : 'border-transparent hover:underline'
+              }`}
+              style={{
+                textShadow:
+                  page !== pageNum
+                    ? '1px 1px 0 black, -1px 1px 0 black, 1px -1px 0 black, -1px -1px 0 black'
+                    : 'none',
+              }}
+            >
+              {pageNum}
+            </Link>
+          );
+        })}
+        <Link
+          href={`?page=${totalPages}`}
+          className={`px-4 py-2 rounded ${
+            page < totalPages
+              ? 'hover:underline'
+              : 'cursor-not-allowed text-white'
+          }`}
+          aria-disabled={page >= totalPages}
+          style={{
+            textShadow:
+              '1px 1px 0 black, -1px 1px 0 black, 1px -1px 0 black, -1px -1px 0 black',
+          }}
+        >
+          끝으로
+        </Link>
       </div>
     </main>
   );

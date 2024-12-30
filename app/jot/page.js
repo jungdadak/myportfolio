@@ -24,13 +24,7 @@ export default async function Jot({ searchParams: initialSearchParams }) {
 
   const totalPosts = await prisma.post.count(); // 전체 글 개수
   const totalPages = Math.ceil(totalPosts / pageSize); // 전체 페이지 수 계산
-  // 타입 옵션 정의
-  const typeOptions = [
-    { value: 'all', label: '전체' },
-    { value: 'study', label: '스터디' },
-    { value: 'project', label: '프로젝트' },
-    { value: 'note', label: '노트' },
-  ];
+
   return (
     <main className="container mx-auto p-4 mt-[80px] max-w-[60rem]">
       <div className="flex justify-between items-center mb-8">

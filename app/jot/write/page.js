@@ -68,6 +68,8 @@ export default function Write() {
   const [selectedProject, setSelectedProject] = useState(null);
   const textareaRef = useRef(null);
   const [postType, setPostType] = useState('general');
+  const [imageSource, setImageSource] = useState('file'); // 'file' 또는 'tag'
+  const [tagImages, setTagImages] = useState([]); // 태그별 이미지 URL 저장
 
   // 상태와 별개로 content를 ref로 관리하여 Uncontrolled Component로 전환
   const contentRef = useRef('');
@@ -81,8 +83,15 @@ export default function Write() {
         const tagOptions = tagsRes.data.map((tag) => ({
           value: tag.id,
           label: tag.name,
+          imageUrl: tag.imageUrl, // 태그에 이미지 URL이 있다고 가정
         }));
         setTagsOptions(tagOptions);
+        setTagImages(
+          tagOptions.reduce((acc, tag) => {
+            acc[tag.value] = tag.imageUrl;
+            return acc;
+          }, {})
+        );
       } catch (error) {
         console.error('태그 가져오기 실패:', error);
         toast.error('태그를 불러오지 못했습니다.');
@@ -104,6 +113,14 @@ export default function Write() {
 
     fetchTagsAndProjects();
   }, []);
+
+  // 히어로 이미지 태그 선택 핸들러
+  const handleHeroImageTagSelect = (selected) => {
+    if (selected && tagImages[selected.value]) {
+      setHeroImage(tagImages[selected.value]);
+      toast.success('태그 이미지가 히어로 이미지로 설정되었습니다.');
+    }
+  };
 
   // 툴바 클릭 시 텍스트 삽입
   const handleToolbarClick = (action) => {
@@ -333,24 +350,65 @@ export default function Write() {
             <option value="test">test</option>
           </select>
         </div>
-        {/* 히어로 이미지 업로드 */}
+        {/* 히어로 이미지 업로드 섹션 수정 */}
         <div>
           <label className="block text-xl font-semibold mb-2">
             히어로 이미지
           </label>
-          <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleHeroImageUpload}
-              className="w-full text-gray-400"
-            />
-            {heroImage && (
-              <img
-                src={heroImage}
-                alt="Hero"
-                className="mt-4 w-full h-64 object-cover rounded"
+          <div className="space-y-4">
+            {/* 이미지 소스 선택 */}
+            <div className="flex gap-4">
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  value="file"
+                  checked={imageSource === 'file'}
+                  onChange={(e) => setImageSource(e.target.value)}
+                  className="form-radio text-blue-600"
+                />
+                <span className="ml-2">파일 업로드</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input
+                  type="radio"
+                  value="tag"
+                  checked={imageSource === 'tag'}
+                  onChange={(e) => setImageSource(e.target.value)}
+                  className="form-radio text-blue-600"
+                />
+                <span className="ml-2">태그 이미지 사용</span>
+              </label>
+            </div>
+
+            {/* 파일 업로드 또는 태그 선택 표시 */}
+            {imageSource === 'file' ? (
+              <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleHeroImageUpload}
+                  className="w-full text-gray-400"
+                />
+              </div>
+            ) : (
+              <DynamicSelect
+                options={tagsOptions}
+                onChange={handleHeroImageTagSelect}
+                isClearable
+                className="w-full"
+                placeholder="히어로 이미지로 사용할 태그를 선택하세요"
               />
+            )}
+
+            {/* 선택된 이미지 미리보기 */}
+            {heroImage && (
+              <div className="mt-4">
+                <img
+                  src={heroImage}
+                  alt="Hero"
+                  className="w-full h-64 object-cover rounded"
+                />
+              </div>
             )}
           </div>
         </div>

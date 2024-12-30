@@ -5,7 +5,16 @@ import prisma from '../../../util/database';
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     // 게시물 생성
-    const { title, subtitle, content, heroImage, tags, projectId } = req.body;
+    const { title, subtitle, content, heroImage, tags, projectId, type } =
+      req.body;
+
+    // type 유효성 검사
+    const validTypes = ['general', 'study', 'test'];
+    if (type && !validTypes.includes(type)) {
+      return res
+        .status(400)
+        .json({ error: '유효하지 않은 게시물 타입입니다.' });
+    }
 
     try {
       const newPost = await prisma.post.create({
@@ -14,6 +23,7 @@ export default async function handler(req, res) {
           subtitle,
           content,
           heroImage,
+          type: type || 'general', // type이 없으면 기본값 사용
           tags:
             tags && tags.length > 0
               ? {

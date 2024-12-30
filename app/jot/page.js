@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Addbtn from '../components/Addbtn';
 import DeleteButton from '../components/DeleteButton';
 import { FaTags, FaEdit } from 'react-icons/fa';
+import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
 
 export default async function Jot({ searchParams: initialSearchParams }) {
   // searchParams를 비동기로 처리
@@ -22,12 +24,18 @@ export default async function Jot({ searchParams: initialSearchParams }) {
 
   const totalPosts = await prisma.post.count(); // 전체 글 개수
   const totalPages = Math.ceil(totalPosts / pageSize); // 전체 페이지 수 계산
-
+  // 타입 옵션 정의
+  const typeOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'study', label: '스터디' },
+    { value: 'project', label: '프로젝트' },
+    { value: 'note', label: '노트' },
+  ];
   return (
     <main className="container mx-auto p-4 mt-[80px] max-w-[60rem]">
       <div className="flex justify-between items-center mb-8">
         <div className="relative bg-black bg-opacity-50 backdrop-blur-md p-4 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className=" md:text-4xl text-3xl font-bold text-white">
             POSTS : {posts.length}
           </h1>{' '}
           <div className="flex items-center justify-between gap-10 mt-4">
@@ -122,11 +130,23 @@ export default async function Jot({ searchParams: initialSearchParams }) {
               <p className="mt-1 text-lg font-medium text-gray-700">
                 {post.subtitle}
               </p>
-              <p className="mt-3 text-sm text-gray-600">
-                {post.content.length > 100
-                  ? `${post.content.slice(0, 100)}...`
-                  : post.content}
-              </p>
+              <div className="mt-3 text-sm text-gray-600">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    img: ({ node, ...props }) => (
+                      <span className="text-gray-400">[이미지]</span>
+                    ),
+                    p: ({ node, ...props }) => (
+                      <p className="inline" {...props} />
+                    ),
+                  }}
+                >
+                  {post.content.length > 100
+                    ? `${post.content.slice(0, 100)}...`
+                    : post.content}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
 

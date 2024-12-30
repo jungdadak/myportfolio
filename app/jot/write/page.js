@@ -294,9 +294,9 @@ export default function Write() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-screen bg-gray-900 mt-14 md:mt-10 text-white p-6">
       <Toaster position="top-right" />
-      <h2 className="text-4xl font-bold mb-6 text-center">글 작성하기</h2>
+      <h2 className="text-4xl font-bold mb-6 text-center">POSTING</h2>
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
         {/* 제목 입력 */}
         <div>

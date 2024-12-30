@@ -4,31 +4,33 @@ import Link from 'next/link';
 import Addbtn from '../components/Addbtn';
 import DeleteButton from '../components/DeleteButton';
 import { FaTags, FaEdit } from 'react-icons/fa';
+import remarkGfm from 'remark-gfm';
+import ReactMarkdown from 'react-markdown';
 
 export default async function Study({ searchParams: initialSearchParams }) {
-  // searchParams를 비동기로 처리
   const searchParams = await initialSearchParams;
 
-  const page = parseInt(searchParams?.page || '1', 10); // 현재 페이지 번호
-  const pageSize = 6; // 한 페이지당 표시할 글 개수
+  const page = parseInt(searchParams?.page || '1', 10);
+  const pageSize = 6;
 
-  // 글 데이터 가져오기
   const posts = await prisma.post.findMany({
-    skip: (page - 1) * pageSize, // 스킵할 글의 개수
-    take: pageSize, // 가져올 글의 개수
-    orderBy: { createdAt: 'desc' }, // 최신 순
-    include: { tags: true, project: true, user: true }, // 연관 데이터 포함
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    orderBy: { createdAt: 'desc' },
+    include: { tags: true, project: true, user: true },
     where: { type: 'study' },
   });
 
-  const totalPosts = await prisma.post.count(); // 전체 글 개수
-  const totalPages = Math.ceil(totalPosts / pageSize); // 전체 페이지 수 계산
+  const totalPosts = await prisma.post.count({
+    where: { type: 'study' },
+  });
+  const totalPages = Math.ceil(totalPosts / pageSize);
 
   return (
     <main className="container mx-auto p-4 mt-[80px] max-w-[60rem]">
       <div className="flex justify-between items-center mb-8">
         <div className="relative bg-black bg-opacity-50 backdrop-blur-md p-4 rounded-lg shadow-lg">
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="md:text-4xl text-3xl font-bold text-white">
             POSTS : {posts.length}
           </h1>{' '}
           <div className="flex items-center justify-between gap-10 mt-4">
@@ -45,7 +47,6 @@ export default async function Study({ searchParams: initialSearchParams }) {
         </div>
       </div>
 
-      {/* 글 목록 */}
       {posts.map((post) => (
         <div
           key={post.id}
@@ -123,11 +124,23 @@ export default async function Study({ searchParams: initialSearchParams }) {
               <p className="mt-1 text-lg font-medium text-gray-700">
                 {post.subtitle}
               </p>
-              <p className="mt-3 text-sm text-gray-600">
-                {post.content.length > 100
-                  ? `${post.content.slice(0, 100)}...`
-                  : post.content}
-              </p>
+              <div className="mt-3 text-sm text-gray-600">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    img: ({ node, ...props }) => (
+                      <span className="text-gray-400">[이미지]</span>
+                    ),
+                    p: ({ node, ...props }) => (
+                      <p className="inline" {...props} />
+                    ),
+                  }}
+                >
+                  {post.content.length > 100
+                    ? `${post.content.slice(0, 100)}...`
+                    : post.content}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
 
@@ -165,7 +178,6 @@ export default async function Study({ searchParams: initialSearchParams }) {
         </div>
       ))}
 
-      {/* 페이지네이션 버튼 */}
       <div className="flex justify-center items-center mt-8 space-x-2">
         <Link
           href={`?page=1`}

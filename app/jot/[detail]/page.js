@@ -10,6 +10,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import EditDeleteButtons from '../../components/EditDeleteButtons';
 import Link from 'next/link';
 import BackBtn from '../../components/BackBtn';
+import remarkGfm from 'remark-gfm'; // 표 지원을 위해 추가
 
 export default async function Detail(props) {
   // props에서 params를 추출
@@ -136,11 +137,13 @@ export default async function Detail(props) {
               prose-code:text-gray-800 prose-code:before:content-none prose-code:after:content-none
               prose-pre:bg-gray-800 prose-pre:shadow-sm
               prose-img:rounded-xl prose-img:shadow-md
-              prose-strong:text-gray-900
-              prose-p:leading-relaxed"
+              prose-strong:text-gray-900 prose-em:text-yellow-500
+              prose-p:leading-relaxed
+              overflow-x-auto" // 추가된 부분
         >
           <ReactMarkdown
             rehypePlugins={[rehypeSanitize]}
+            remarkPlugins={[remarkGfm]} // 표 지원을 위해 추가
             components={{
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');
@@ -154,7 +157,7 @@ export default async function Detail(props) {
                     <SyntaxHighlighter
                       style={customOkaidia}
                       language={match[1]}
-                      PreTag="pre" // PreTag을 'pre'로 설정
+                      PreTag="pre"
                       className=""
                       {...props}
                     >
@@ -163,7 +166,7 @@ export default async function Detail(props) {
                   </div>
                 ) : (
                   <code
-                    className="px-2 py-1 rounded-md bg-gray-800 text-sm"
+                    className="px-2 py-1 rounded-md bg-gray-800 text-gray-100 text-sm" // 텍스트 색상 추가
                     {...props}
                   >
                     {children}
@@ -179,6 +182,40 @@ export default async function Detail(props) {
                   />
                 );
               },
+              strong: ({ node, ...props }) => (
+                <strong className="text-gray-900 font-semibold" {...props} />
+              ),
+              em: ({ node, ...props }) => (
+                <em className="text-yellow-500 italic" {...props} />
+              ),
+              table: ({ node, ...props }) => (
+                <table
+                  className="min-w-full divide-y divide-gray-200"
+                  {...props}
+                />
+              ),
+              thead: ({ node, ...props }) => (
+                <thead className="bg-gray-50" {...props} />
+              ),
+              th: ({ node, ...props }) => (
+                <th
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  {...props}
+                />
+              ),
+              tbody: ({ node, ...props }) => (
+                <tbody
+                  className="bg-white divide-y divide-gray-200"
+                  {...props}
+                />
+              ),
+              td: ({ node, ...props }) => (
+                <td
+                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                  {...props}
+                />
+              ),
+              // 필요한 다른 태그들도 커스터마이징 가능
             }}
           >
             {post.content}

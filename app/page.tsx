@@ -7,7 +7,7 @@ import ProjectsSection from "./components/ProjectsSection";
 
 const HomePage: React.FC = () => {
 	return (
-		<div className="mt-11 md:mt-0 relative w-screen h-screen bg-black overflow-hidden">
+		<div className="mt-11 md:mt-0 relative w-screen bg-black">
 			<main className="w-screen flex flex-col overflow-y-auto snap-y snap-mandatory h-full">
 				{/* About Me 섹션 */}
 				<section

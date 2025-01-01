@@ -3,30 +3,30 @@
 import Link from "next/link";
 import React from "react";
 
-const AboutSection: React.FC = () => {
+const ProjectsSection: React.FC = () => {
 	return (
 		<section className="group relative flex-shrink-0 w-full h-[35vh] snap-start flex items-center justify-center text-white transition-all duration-300 border-b border-gray-700/50 bg-gradient-to-b from-black to-gray-900/50 overflow-hidden">
 			{/* 상단 비디오 */}
-			<div className="absolute left-0 w-full h-full top-0 opacity-0 invisible group-hover:visible transition-opacity transition-transform duration-700 z-0 [clip-path:inset(0_0_50%_0)] group-hover:opacity-100 group-hover:-translate-y-1/4">
+			<div className="absolute left-0 w-full h-full top-0 transition-opacity transition-transform duration-700 z-0 [clip-path:inset(0_0_50%_0)] group-hover:-translate-y-1/4">
 				<video
 					src="/images/projects.mp4"
 					autoPlay
 					muted
 					loop
 					playsInline
-					className="w-full h-full object-cover bg-black"
+					className="w-full h-full object-cover bg-black filter grayscale transition-all duration-300 group-hover:filter-none"
 				/>
 			</div>
 
 			{/* 하단 비디오 */}
-			<div className="absolute left-0 w-full h-full top-0 opacity-0 invisible group-hover:visible transition-opacity transition-transform duration-700 z-0 [clip-path:inset(50%_0_0_0)] group-hover:opacity-100 group-hover:translate-y-1/4">
+			<div className="absolute left-0 w-full h-full top-0 transition-opacity transition-transform duration-700 z-0 [clip-path:inset(50%_0_0_0)] group-hover:translate-y-1/4">
 				<video
 					src="/images/projects.mp4"
 					autoPlay
 					muted
 					loop
 					playsInline
-					className="w-full h-full object-cover bg-black"
+					className="w-full h-full object-cover bg-black filter grayscale transition-all duration-300 group-hover:filter-none"
 				/>
 			</div>
 
@@ -44,9 +44,8 @@ const AboutSection: React.FC = () => {
 					Click to view projects
 				</div>
 			</div>
-			{/* ... */}
 		</section>
 	);
 };
 
-export default AboutSection;
+export default ProjectsSection;

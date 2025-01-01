@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import WaveVisualizer from "./components/WaveVisualizer"; // 파일 경로 조정
+import WaveVisualizer from "./components/DigitalVisualizer"; // 파일 경로 조정
 import ProjectsSection from "./components/ProjectsSection";
 
 const HomePage: React.FC = () => {
@@ -40,7 +40,6 @@ const HomePage: React.FC = () => {
             "
 					>
 						<WaveVisualizer
-							segmentCount={20} // 필요한 경우 값 조정
 							className="opacity-60"
 							colorStart="#10B981" // 필요 시 색상 조정
 							colorEnd="#FBBF24" // 필요 시 색상 조정
@@ -93,32 +92,32 @@ const HomePage: React.FC = () => {
 				<ProjectsSection />
 
 				{/* Articles 섹션 */}
-
 				<section
 					className="
-            relative
-            flex-shrink-0
-            w-full
-            h-[65vh]
-            snap-start
-            group
-            flex flex-col items-center justify-start
-            text-white text-4xl
-            transition-all duration-300
-            border-b border-gray-700
-            bg-black
-          "
+    relative
+    flex-shrink-0
+    w-full
+    snap-start
+    group
+    flex flex-col items-center justify-start
+    text-white text-4xl
+    transition-all duration-300
+    border-b border-gray-700
+    bg-black
+    py-16
+  "
 				>
+					{/* 배경 SVG */}
 					<div
 						className="
-              absolute inset-0
-              z-0
-              w-full h-full
-              opacity-0
-              group-hover:opacity-100
-              transition-all duration-500
-              overflow-hidden
-            "
+      absolute inset-0
+      z-0
+      w-full h-full
+      opacity-0
+      group-hover:opacity-100
+      transition-opacity duration-500
+      overflow-hidden
+    "
 					>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
@@ -164,125 +163,141 @@ const HomePage: React.FC = () => {
 						</svg>
 					</div>
 
-					{/* 실제 컨텐츠 부분에 여백을 줘서 4개 박스만 감싸도록 */}
-					<div className="relative z-10 flex flex-col items-center py-16 w-full">
+					{/* 실제 컨텐츠 부분 */}
+					<div className="relative z-10 flex flex-col items-center w-full">
 						<Link href="/articles">
-							<span className="cursor-pointer px-1 py-0 mb-4 text-4xl">Articles</span>
+							<span className="cursor-pointer px-1 py-0 mb-8 text-4xl">Articles</span>
 						</Link>
 
-						{/* 4개 카드 영역만 보이도록, 높이 자동 */}
+						{/* 4개 카드 영역 */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 w-3/4">
 							{/* Docker Logs */}
-							<div className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600">
+							<Link
+								href="/articles?type=study&tag=docker"
+								className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600 cursor-pointer overflow-hidden rounded-lg"
+							>
 								<div
 									className="
-                    absolute inset-0
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-500
-                    bg-center bg-no-repeat bg-black
-                  "
+            absolute inset-0
+            opacity-0 group-hover:opacity-100
+            transition-opacity duration-500
+            bg-center bg-no-repeat bg-black
+            transform transition-transform duration-500
+            group-hover:scale-105
+            hover:scale-110
+          "
 									style={{
 										backgroundImage: 'url("/images/tags/docker.png")',
 										backgroundSize: "contain",
 									}}
 								/>
-								<Link href="/articles?type=study&tag=docker">
-									<span
-										className="
-                      relative z-10 cursor-pointer underline
-                      hover:text-yellow-300 text-2xl px-4 py-2
-                      transition-opacity duration-300
-                      group-hover:opacity-0
-                    "
-									>
-										Docker Logs
-									</span>
-								</Link>
-							</div>
+								<span
+									className="
+            relative z-10 cursor-pointer underline
+            hover:text-yellow-300 text-2xl px-4 py-2
+            transition-opacity duration-300
+            group-hover:opacity-0
+          "
+								>
+									Docker Logs
+								</span>
+							</Link>
 
 							{/* TypeScript Logs */}
-							<div className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600">
+							<Link
+								href="/articles?type=study&tag=typescript"
+								className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600 cursor-pointer overflow-hidden rounded-lg"
+							>
 								<div
 									className="
-                    absolute inset-0
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-500
-                    bg-center bg-no-repeat bg-black
-                  "
+            absolute inset-0
+            opacity-0 group-hover:opacity-100
+            transition-opacity duration-500
+            bg-center bg-no-repeat bg-black
+            transform transition-transform duration-500
+            group-hover:scale-105
+            hover:scale-110
+          "
 									style={{
 										backgroundImage: 'url("/images/tags/typescript.png")',
 										backgroundSize: "cover",
 									}}
 								/>
-								<Link href="/articles?type=study&tag=typescript">
-									<span
-										className="
-                      relative z-10 cursor-pointer underline
-                      hover:text-yellow-300 text-2xl px-4 py-2
-                      transition-opacity duration-300
-                      group-hover:opacity-0
-                    "
-									>
-										TypeScript Logs
-									</span>
-								</Link>
-							</div>
+								<span
+									className="
+            relative z-10 cursor-pointer underline
+            hover:text-yellow-300 text-2xl px-4 py-2
+            transition-opacity duration-300
+            group-hover:opacity-0
+          "
+								>
+									TypeScript Logs
+								</span>
+							</Link>
 
 							{/* Fast-Api Logs */}
-							<div className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600">
+							<Link
+								href="/articles?type=study&tag=fast-api"
+								className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600 cursor-pointer overflow-hidden rounded-lg"
+							>
 								<div
 									className="
-                    absolute inset-0
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-500
-                    bg-center bg-no-repeat bg-black
-                  "
+            absolute inset-0
+            opacity-0 group-hover:opacity-100
+            transition-opacity duration-500
+            bg-center bg-no-repeat bg-black
+            transform transition-transform duration-500
+            group-hover:scale-105
+            hover:scale-110
+          "
 									style={{
 										backgroundImage: 'url("/images/tags/fastapi.png")',
 										backgroundSize: "cover",
 									}}
 								/>
-								<Link href="/articles?type=study&tag=fast-api">
-									<span
-										className="
-                      relative z-10 cursor-pointer underline
-                      hover:text-yellow-300 text-2xl px-4 py-2
-                      transition-opacity duration-300
-                      group-hover:opacity-0
-                    "
-									>
-										Fast-Api Logs
-									</span>
-								</Link>
-							</div>
+								<span
+									className="
+            relative z-10 cursor-pointer underline
+            hover:text-yellow-300 text-2xl px-4 py-2
+            transition-opacity duration-300
+            group-hover:opacity-0
+          "
+								>
+									Fast-Api Logs
+								</span>
+							</Link>
 
 							{/* Next.js Logs */}
-							<div className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600">
+							<Link
+								href="/articles?type=study&tag=nextjs"
+								className="relative group flex items-center justify-center h-40 md:h-48 border border-gray-600 cursor-pointer overflow-hidden rounded-lg"
+							>
 								<div
 									className="
-                    absolute inset-0
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity duration-500
-                    bg-center bg-no-repeat bg-black
-                  "
+            absolute inset-0
+            opacity-0 group-hover:opacity-100
+            transition-opacity duration-500
+            bg-center bg-no-repeat bg-black
+            transform transition-transform duration-500
+            group-hover:scale-105
+            hover:scale-110
+          "
 									style={{
 										backgroundImage: 'url("/images/tags/nextjs.jpeg")',
 										backgroundSize: "contain",
 									}}
 								/>
-								<Link href="/articles?type=study&tag=nextjs">
-									<span
-										className="
-                      relative z-10 cursor-pointer underline
-                      hover:text-yellow-300 text-2xl px-4 py-2
-                      transition-opacity duration-300
-                      group-hover:opacity-0
-                    "
-									>
-										Next.js Logs
-									</span>
-								</Link>
-							</div>
+								<span
+									className="
+            relative z-10 cursor-pointer underline
+            hover:text-yellow-300 text-2xl px-4 py-2
+            transition-opacity duration-300
+            group-hover:opacity-0
+          "
+								>
+									Next.js Logs
+								</span>
+							</Link>
 						</div>
 					</div>
 				</section>

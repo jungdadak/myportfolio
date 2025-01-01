@@ -1,32 +1,33 @@
+// tsconfig.json
 {
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "strictNullChecks": true
-  },
-  "include": [
-    "**/*.js",
-    "**/*.jsx",
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "app/components/DigitalVisualizer.tsx"
-  ],
-  "exclude": ["node_modules"]
+	"compilerOptions": {
+		"target": "es5",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"incremental": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		]
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"global.d.ts",
+		"next-env.d.ts",
+		".next/types/**/*.ts",
+		"app/articles/page.js"
+	],
+	"exclude": ["node_modules"]
 }

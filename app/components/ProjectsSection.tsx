@@ -11,7 +11,7 @@ const AboutSection: React.FC = () => {
         relative
         flex-shrink-0
         w-full
-        h-[30vh]
+        h-[35vh]
         snap-start
         flex
         items-center

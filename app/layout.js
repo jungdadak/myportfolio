@@ -1,11 +1,13 @@
+// app/layout.jsx 또는 app/root-layout.jsx
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import Navbar from './components/navbar.js';
+import Navbar from './components/navbar.tsx';
 import Container from './components/Container';
 import ToastProvider from './components/ToastProvider';
 import ParallaxBackground from './components/ParallaxBackground';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
+import React, { Suspense } from 'react';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -22,6 +24,8 @@ export const metadata = {
   description: '풀스택 뉴비',
 };
 
+const Loading = () => <div>로딩 중...</div>; // 로딩 컴포넌트 (커스터마이징 가능)
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -32,7 +36,9 @@ export default function RootLayout({ children }) {
 
         {/* 콘텐츠 영역 */}
         <div className="relative max-w-[90rem] mx-auto md:px-4">
-          <Navbar />
+          <Suspense fallback={<Loading />}>
+            <Navbar />
+          </Suspense>
           <ToastProvider />
           <Container>{children}</Container>
         </div>

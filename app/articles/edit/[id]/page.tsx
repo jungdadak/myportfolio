@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+	useState,
+	useRef,
+	useEffect,
+	ChangeEvent,
+	DragEvent,
+	ClipboardEvent,
+} from "react";
 import toast, { Toaster } from "react-hot-toast";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { useRouter, useParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
@@ -13,8 +20,34 @@ import { okaidia } from "react-syntax-highlighter/dist/cjs/styles/prism";
 // DynamicSelect 컴포넌트 임포트
 import DynamicSelect from "../../../components/DynamicSelect";
 
+// Interfaces for Tag, Project, and Post
+interface Tag {
+	id: number;
+	name: string;
+}
+
+interface Project {
+	id: number;
+	title: string;
+}
+
+interface Post {
+	id: number;
+	title: string;
+	subtitle?: string;
+	content: string;
+	heroImage?: string;
+	tags: Tag[];
+	project?: Project;
+}
+
+// Props for Toolbar component
+interface ToolbarProps {
+	onToolbarClick: (action: string) => void;
+}
+
 // Toolbar 컴포넌트
-const Toolbar = ({ onToolbarClick }) => (
+const Toolbar: React.FC<ToolbarProps> = ({ onToolbarClick }) => (
 	<div className="flex gap-2 mb-2 p-2 bg-gray-800 rounded-t">
 		{[
 			{ icon: "B", action: "**텍스트**", tooltip: "굵게" },
@@ -54,7 +87,7 @@ const Toolbar = ({ onToolbarClick }) => (
 	</div>
 );
 
-export default function EditPost() {
+const EditPost: React.FC = () => {
 	const router = useRouter();
 	const params = useParams();
 
@@ -62,30 +95,39 @@ export default function EditPost() {
 	console.log("useParams:", params);
 
 	// 파라미터 이름 확인 후 수정 (예: [id].js 이면 params.id 사용)
-	const postId = params.id || params.detail; // 라우트에 맞게 수정
+	const postId = params?.id;
 
 	// 상태 관리
-	const [heroImage, setHeroImage] = useState(null);
-	const [title, setTitle] = useState("");
-	const [subtitle, setSubtitle] = useState("");
-	const [content, setContent] = useState("");
-	const [isPreview, setIsPreview] = useState(false);
-	const [tagsOptions, setTagsOptions] = useState([]);
-	const [selectedTags, setSelectedTags] = useState([]);
-	const [projectsOptions, setProjectsOptions] = useState([]);
-	const [selectedProject, setSelectedProject] = useState(null);
-	const textareaRef = useRef(null);
-	const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
+	const [heroImage, setHeroImage] = useState<string | null>(null);
+	const [title, setTitle] = useState<string>("");
+	const [subtitle, setSubtitle] = useState<string>("");
+	const [content, setContent] = useState<string>("");
+	const [isPreview, setIsPreview] = useState<boolean>(false);
+	const [tagsOptions, setTagsOptions] = useState<
+		{ value: number; label: string }[]
+	>([]);
+	const [selectedTags, setSelectedTags] = useState<
+		{ value: number; label: string }[]
+	>([]);
+	const [projectsOptions, setProjectsOptions] = useState<
+		{ value: number; label: string }[]
+	>([]);
+	const [selectedProject, setSelectedProject] = useState<{
+		value: number;
+		label: string;
+	} | null>(null);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const [isLoading, setIsLoading] = useState<boolean>(true); // 로딩 상태 추가
 
 	// 게시글 데이터 및 태그/프로젝트 데이터 불러오기
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				// 태그와 프로젝트 데이터를 병렬로 불러오기
-				const [tagsRes, projectsRes] = await Promise.all([
-					axios.get("/api/tags"),
-					axios.get("/api/projects"),
-				]);
+				const [tagsRes, projectsRes]: [
+					AxiosResponse<Tag[]>,
+					AxiosResponse<Project[]>
+				] = await Promise.all([axios.get("/api/tags"), axios.get("/api/projects")]);
 
 				const tagOptions = tagsRes.data.map((tag) => ({
 					value: tag.id,
@@ -100,7 +142,9 @@ export default function EditPost() {
 				setProjectsOptions(projectOptions);
 
 				// 게시글 데이터 불러오기
-				const postRes = await axios.get(`/api/posts/${postId}`);
+				const postRes: AxiosResponse<Post> = await axios.get(
+					`/api/posts/${postId}`
+				);
 				const post = postRes.data;
 
 				setTitle(post.title);
@@ -130,12 +174,12 @@ export default function EditPost() {
 	}, [postId]);
 
 	// 툴바 클릭 시 텍스트 삽입
-	const handleToolbarClick = (action) => {
+	const handleToolbarClick = (action: string) => {
 		insertAtCursor(action);
 	};
 
 	// 히어로 이미지 업로드 핸들러
-	const handleHeroImageUpload = async (e) => {
+	const handleHeroImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (!files || files.length === 0) return;
 
@@ -143,7 +187,7 @@ export default function EditPost() {
 		formData.append("file", files[0]);
 
 		try {
-			const res = await axios.post("/api/upload", formData, {
+			const res = await axios.post<{ url: string }>("/api/upload", formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 			});
 			setHeroImage(res.data.url);
@@ -155,10 +199,14 @@ export default function EditPost() {
 	};
 
 	// 이미지 드롭 또는 붙여넣기 핸들러
-	const handleImageDropOrPaste = async (e) => {
+	const handleImageDropOrPaste = async (
+		e: DragEvent<HTMLTextAreaElement> | ClipboardEvent<HTMLTextAreaElement>
+	) => {
 		e.preventDefault();
 
-		const files = e.dataTransfer?.files || e.clipboardData?.files;
+		const files =
+			(e as DragEvent<HTMLTextAreaElement>).dataTransfer?.files ||
+			(e as ClipboardEvent<HTMLTextAreaElement>).clipboardData?.files;
 		console.log("Pasted Files:", files); // 디버깅용 로그
 
 		if (files && files.length > 0) {
@@ -171,7 +219,7 @@ export default function EditPost() {
 				formData.append("file", file);
 
 				try {
-					const res = await axios.post("/api/upload", formData, {
+					const res = await axios.post<{ url: string }>("/api/upload", formData, {
 						headers: { "Content-Type": "multipart/form-data" },
 					});
 					// 마크다운 이미지 문법으로 변경
@@ -186,13 +234,15 @@ export default function EditPost() {
 		}
 
 		// 데이터 URL 형태의 이미지 처리
-		const text = e.clipboardData?.getData("text");
+		const text = (
+			e as ClipboardEvent<HTMLTextAreaElement>
+		).clipboardData?.getData("text");
 		if (text) {
 			const dataUrlMatch = text.match(/^data:image\/(png|jpeg|jpg);base64,/);
 			if (dataUrlMatch) {
 				// 데이터 URL을 서버로 전송하여 이미지 URL을 얻는 로직
 				try {
-					const res = await axios.post("/api/upload-data-url", {
+					const res = await axios.post<{ url: string }>("/api/upload-data-url", {
 						dataUrl: text,
 					});
 					insertAtCursor(`![이미지](${res.data.url})\n\n`);
@@ -209,7 +259,7 @@ export default function EditPost() {
 	};
 
 	// 텍스트 삽입 함수 (상태 기반)
-	const insertAtCursor = (text) => {
+	const insertAtCursor = (text: string) => {
 		if (!textareaRef.current) {
 			console.error("textareaRef.current is null in insertAtCursor");
 			toast.error("텍스트 에어리어에 접근할 수 없습니다.");
@@ -230,10 +280,10 @@ export default function EditPost() {
 		}, 0);
 	};
 
-	// 폼 제출 핸들러 (글 수정)
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const currentContent = content; // 상태에서 현재 값을 가져옴
+		const currentContent = content;
+
 		if (!title || !currentContent) {
 			toast.error("제목과 내용을 입력하세요.");
 			return;
@@ -243,29 +293,35 @@ export default function EditPost() {
 		const projectId = selectedProject ? selectedProject.value : null;
 
 		try {
-			await axios.put(`/api/posts/${postId}`, {
+			// 수정된 데이터 준비
+			const updateData = {
 				title,
 				subtitle,
 				content: currentContent,
 				heroImage,
-				tags: tagIds,
+				tagIds, // tags 대신 tagIds로 변경
 				projectId,
-			});
-			toast.success("글 수정 성공");
-			router.push("/articles/[detail]", `/articles/${postId}`);
-		} catch (error) {
+			};
+
+			// PUT 요청 보내기
+			const response = await axios.put(`/api/posts/${postId}`, updateData);
+
+			if (response.status === 200) {
+				toast.success("글이 성공적으로 수정되었습니다.");
+				// 수정된 라우팅
+				router.push(`/articles/${postId}`);
+			}
+		} catch (error: any) {
 			console.error("글 수정 실패:", error);
-			toast.error("글 수정 실패");
+			// 더 자세한 에러 메시지 표시
+			const errorMessage =
+				error.response?.data?.message || "글 수정에 실패했습니다.";
+			toast.error(errorMessage);
 		}
 	};
 
 	// 임시 저장 핸들러
 	const handleSaveDraft = async () => {
-		if (!content) {
-			toast.error("내용이 비어있습니다.");
-			return;
-		}
-
 		if (!title || !content) {
 			toast.error("제목과 내용을 입력하세요.");
 			return;
@@ -275,19 +331,24 @@ export default function EditPost() {
 		const projectId = selectedProject ? selectedProject.value : null;
 
 		try {
-			await axios.post("/api/posts/draft", {
+			const response = await axios.post("/api/posts/draft", {
 				title,
 				subtitle,
 				content,
 				heroImage,
-				tags: tagIds,
+				tagIds, // tags 대신 tagIds로 변경
 				projectId,
 			});
-			toast.success("초안 저장 성공");
-			router.push("/articles");
-		} catch (error) {
+
+			if (response.status === 200) {
+				toast.success("초안이 성공적으로 저장되었습니다.");
+				router.push("/articles");
+			}
+		} catch (error: any) {
 			console.error("초안 저장 실패:", error);
-			toast.error("초안 저장 실패");
+			const errorMessage =
+				error.response?.data?.message || "초안 저장에 실패했습니다.";
+			toast.error(errorMessage);
 		}
 	};
 
@@ -327,7 +388,7 @@ export default function EditPost() {
 					<input
 						type="text"
 						value={title}
-						onChange={(e) => setTitle(e.target.value)}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
 						placeholder="제목을 입력하세요"
 						className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
 					/>
@@ -339,7 +400,9 @@ export default function EditPost() {
 					<input
 						type="text"
 						value={subtitle}
-						onChange={(e) => setSubtitle(e.target.value)}
+						onChange={(e: ChangeEvent<HTMLInputElement>) =>
+							setSubtitle(e.target.value)
+						}
 						placeholder="부제목을 입력하세요"
 						className="w-full p-3 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-blue-500"
 					/>
@@ -372,7 +435,9 @@ export default function EditPost() {
 						isMulti
 						options={tagsOptions}
 						value={selectedTags}
-						onChange={setSelectedTags}
+						onChange={(selected) =>
+							setSelectedTags(selected as { value: number; label: string }[])
+						}
 						className="w-full"
 						placeholder="태그를 선택하세요"
 					/>
@@ -384,7 +449,9 @@ export default function EditPost() {
 					<DynamicSelect
 						options={projectsOptions}
 						value={selectedProject}
-						onChange={setSelectedProject}
+						onChange={(selected) =>
+							setSelectedProject(selected as { value: number; label: string } | null)
+						}
 						isClearable
 						className="w-full"
 						placeholder="프로젝트를 선택하세요"
@@ -404,7 +471,9 @@ export default function EditPost() {
 								placeholder="내용을 입력하세요"
 								className="w-full p-3 bg-gray-800 rounded-b h-96 focus:outline-none resize-none"
 								value={content}
-								onChange={(e) => setContent(e.target.value)}
+								onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+									setContent(e.target.value)
+								}
 							/>
 						) : (
 							<div className="w-full p-3 h-96 overflow-auto prose prose-sm md:prose-base prose-invert max-w-none">
@@ -490,4 +559,6 @@ export default function EditPost() {
 			</form>
 		</div>
 	);
-}
+};
+
+export default EditPost;

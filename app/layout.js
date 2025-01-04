@@ -8,7 +8,7 @@ import ParallaxBackground from './components/ParallaxBackground';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
 import React, { Suspense } from 'react';
-
+import { SessionProvider } from 'next-auth/react';
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -40,7 +40,9 @@ export default function RootLayout({ children }) {
             <Navbar />
           </Suspense>
           <ToastProvider />
-          <Container>{children}</Container>
+          <Container>
+            <SessionProvider>{children}</SessionProvider>
+          </Container>
         </div>
       </body>
     </html>

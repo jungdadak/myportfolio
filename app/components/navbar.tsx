@@ -4,7 +4,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-
+import SignIn from './sign-in';
 // Visualizer를 클라이언트 전용으로 동적 임포트
 const Visualizer = dynamic(() => import('./Visualizer'), { ssr: false });
 
@@ -98,14 +98,12 @@ const Navbar: React.FC = () => {
             {/* 데스크탑 메뉴 */}
             <div className="hidden lg:flex flex-1 justify-end items-center gap-8">
               <div className="flex gap-8 text-yellow-300 font-thin whitespace-nowrap">
+                <SignIn />{' '}
                 <Link href="/profile" className="shimmer-text">
                   About Me
                 </Link>
                 <Link href="/projects" className="shimmer-text">
                   Projects
-                </Link>
-                <Link href="/roadmap" className="shimmer-text">
-                  Next Steps
                 </Link>
                 <Link href="/articles" className="shimmer-text">
                   All Posts
@@ -154,12 +152,6 @@ const Navbar: React.FC = () => {
                 Projects
               </Link>
               <Link
-                href="/roadmap"
-                className="shimmer-text text-yellow-300 whitespace-nowrap"
-              >
-                Next Steps
-              </Link>
-              <Link
                 href="/articles"
                 className="shimmer-text text-yellow-300 whitespace-nowrap"
               >
@@ -171,6 +163,7 @@ const Navbar: React.FC = () => {
               >
                 Study Log
               </Link>
+              <SignIn />{' '}
               <div className="flex items-center w-[260px]">
                 <input
                   type="search"

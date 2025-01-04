@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.1.0",
     "@tailwindcss/typography": "^0.5.15",

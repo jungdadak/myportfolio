@@ -1,4 +1,4 @@
-import prisma from '../../../../util/database';
+import prisma from '../../../util/database';
 
 export async function POST(req) {
   const body = await req.json();

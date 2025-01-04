@@ -31,6 +31,7 @@ type Providers = {
 
 interface LoginModalProps {
 	isOpen: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
 const providers: Providers = {
@@ -61,7 +62,7 @@ const providers: Providers = {
 	},
 } as const;
 
-export function LoginModal({ isOpen }: LoginModalProps) {
+export function LoginModal({ isOpen, onOpenChange }: LoginModalProps) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
@@ -92,13 +93,6 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 		}
 	};
 
-	const [closeAnimation, setCloseAnimation] = useState(false);
-
-	const handleClose = () => {
-		// URL 상태 변경 또는 다른 closing 로직이 필요하다면 여기서 처리
-		window.history.back();
-	};
-
 	if (!isOpen) return null;
 
 	return (
@@ -108,10 +102,13 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 			role="dialog"
 			aria-modal="true"
 		>
-			<div className="absolute inset-0" onClick={handleClose} aria-hidden="true" />
+			<div
+				className="absolute inset-0"
+				onClick={() => onOpenChange(false)}
+				aria-hidden="true"
+			/>
 
 			<div className="relative bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-auto p-0 z-10 overflow-hidden">
-				{/* 이미지 및 그라데이션 */}
 				<div className="relative h-40 p-4">
 					<Image
 						src="/images/projects/portfolio.png"
@@ -125,11 +122,9 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 					<div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 rounded-t-lg"></div>
 				</div>
 
-				{/* 모달 내용 */}
 				<div className="bg-gray-900 bg-opacity-95 p-6">
-					{/* 닫기 버튼 */}
 					<button
-						onClick={handleClose}
+						onClick={() => onOpenChange(false)}
 						className="absolute top-4 right-4 text-white hover:text-gray-300 focus:outline-none"
 						aria-label="닫기"
 					>
@@ -148,7 +143,6 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 						</svg>
 					</button>
 
-					{/* 설명 */}
 					<div className="text-center mb-4 justify-center">
 						<AnimatedCode />
 						<p className="mt-4 text-sm text-white font-md">
@@ -156,7 +150,6 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 						</p>
 					</div>
 
-					{/* 로그인 폼 */}
 					<form onSubmit={handleSubmit} className="space-y-4">
 						{error && <div className="text-red-400 text-sm text-center">{error}</div>}
 						<div className="relative">
@@ -209,14 +202,12 @@ export function LoginModal({ isOpen }: LoginModalProps) {
 						</button>
 					</form>
 
-					{/* 소셜 로그인 구분선 */}
 					<div className="flex items-center my-4">
 						<div className="flex-grow border-t border-gray-700"></div>
 						<span className="mx-2 text-gray-400 text-xs">또는</span>
 						<div className="flex-grow border-t border-gray-700"></div>
 					</div>
 
-					{/* 소셜 로그인 버튼 */}
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
 						{Object.entries(providers).map(([id, provider]) => (
 							<button

@@ -10,7 +10,6 @@ export function NavSignInButton() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-	// 로딩 상태 처리
 	if (status === "loading") {
 		return (
 			<button disabled className="p-2 opacity-50">
@@ -19,7 +18,6 @@ export function NavSignInButton() {
 		);
 	}
 
-	// 로그인된 상태
 	if (session?.user) {
 		return (
 			<div className="relative">
@@ -42,16 +40,13 @@ export function NavSignInButton() {
 
 				{isDropdownOpen && (
 					<div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
-						{/* User Info */}
 						<div className="px-4 py-3">
 							<p className="text-sm text-white">{session.user.name}</p>
 							<p className="text-xs text-gray-400 truncate">{session.user.email}</p>
 						</div>
 
-						{/* Divider */}
 						<div className="border-t border-gray-700" />
 
-						{/* Menu Items */}
 						<div className="py-1">
 							<button
 								className="w-full px-4 py-2 text-sm text-white hover:bg-gray-700 flex items-center gap-2"
@@ -72,7 +67,6 @@ export function NavSignInButton() {
 								설정
 							</button>
 
-							{/* Divider */}
 							<div className="border-t border-gray-700" />
 
 							<button
@@ -89,7 +83,6 @@ export function NavSignInButton() {
 		);
 	}
 
-	// 로그인되지 않은 상태
 	return (
 		<>
 			<button
@@ -99,7 +92,7 @@ export function NavSignInButton() {
 				<LogIn className="h-4 w-4" />
 				로그인
 			</button>
-			<LoginModal isOpen={isModalOpen} />
+			<LoginModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
 		</>
 	);
 }

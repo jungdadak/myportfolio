@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Github, Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -199,6 +199,14 @@ export function LoginModal({ isOpen, onOpenChange }: LoginModalProps) {
 						>
 							{isLoading ? "로그인 중..." : "로그인"}
 						</button>
+
+						<Link
+							href="/register"
+							onClick={() => onOpenChange(false)}
+							className="justify-end text-sm font-semibold text-indigo-200 hover:text-indigo-300 transition-colors duration-200 flex items-center gap-1"
+						>
+							딱 10초면 가입완료! ✨
+						</Link>
 					</form>
 
 					<div className="flex items-center my-4">

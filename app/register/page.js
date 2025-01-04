@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LoginModal } from "../components/auth/login-modal";
 import { AnimatedCode } from "../components/greetings";
-
+import { toast } from "react-hot-toast";
 export default function Register() {
 	const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -69,14 +69,15 @@ export default function Register() {
 			});
 
 			if (!response.ok) {
-				throw new Error("회원가입에 실패했습니다.");
+				toast.error(data.error || "회원가입에 실패했습니다");
+				return;
 			}
-
+			toast.success("환영합니다~! 회원가입이 완료되었습니다.");
 			// 회원가입 성공 시 로그인 페이지로 이동
-			window.location.href = "/login";
+			setShowLoginModal(true);
 		} catch (error) {
 			console.error("Registration failed:", error);
-			setError("회원가입 중 오류가 발생했습니다. 나중에 다시 시도해주세요.");
+			toast.error("회원가입 중 오류가 발생했습니다");
 		} finally {
 			setIsLoading(false);
 		}
@@ -91,7 +92,7 @@ export default function Register() {
 					onOpenChange={() => setShowLoginModal(false)}
 				/>
 			)}
-			<div className="min-h-screen bg-gradient-to-b from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
+			<div className="min-h-screen w-full bg-gradient-to-b from-gray-900 to-black py-12 px-2 sm:px-6 lg:px-8">
 				<div className="max-w-md mx-auto">
 					{/* 뒤로가기 버튼 */}
 					<Link

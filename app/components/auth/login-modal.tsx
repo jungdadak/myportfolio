@@ -117,7 +117,6 @@ export function LoginModal({ isOpen, onOpenChange }: LoginModalProps) {
 						objectFit="cover"
 						objectPosition="center"
 						className="opacity-90 rounded-t-lg"
-						priority
 					/>
 					<div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 rounded-t-lg"></div>
 				</div>

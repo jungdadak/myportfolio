@@ -1,5 +1,3 @@
-// pages/api/upload.js
-
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -36,29 +34,37 @@ const upload = multer({
   },
 });
 
-// 핸들러 함수
-export default function handler(req, res) {
-  if (req.method === 'POST') {
-    upload.single('file')(req, res, function (err) {
+// POST 메서드 처리
+export async function POST(req) {
+  return new Promise((resolve, reject) => {
+    upload.single('file')(req, {}, (err) => {
       if (err instanceof multer.MulterError) {
         // Multer 에러 처리
-        return res.status(500).json({ error: err.message });
+        return resolve(
+          new Response(JSON.stringify({ error: err.message }), { status: 500 })
+        );
       } else if (err) {
         // 일반 에러 처리
-        return res.status(500).json({ error: err.message });
+        return resolve(
+          new Response(JSON.stringify({ error: err.message }), { status: 500 })
+        );
       }
 
       if (!req.file) {
-        return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });
+        return resolve(
+          new Response(
+            JSON.stringify({ error: '파일이 업로드되지 않았습니다.' }),
+            { status: 400 }
+          )
+        );
       }
 
       const fileUrl = `/uploads/${req.file.filename}`;
-      res.status(200).json({ url: fileUrl });
+      return resolve(
+        new Response(JSON.stringify({ url: fileUrl }), { status: 200 })
+      );
     });
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`허용되지 않은 메서드: ${req.method}`);
-  }
+  });
 }
 
 export const config = {

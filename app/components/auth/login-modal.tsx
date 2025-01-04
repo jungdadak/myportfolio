@@ -3,10 +3,10 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { Github } from 'lucide-react';
+import { Github, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Image from 'next/image';
-
+import { AnimatedCode } from '../greetings';
 type BaseProvider = {
   name: string;
   bgColor: string;
@@ -38,15 +38,15 @@ const providers: Providers = {
   github: {
     name: 'GitHub',
     icon: Github,
-    bgColor: 'bg-gray-900',
+    bgColor: 'bg-gray-800',
     hoverColor: 'hover:bg-gray-700',
   },
   google: {
     name: 'Google',
-    bgColor: 'bg-white',
-    textColor: 'text-gray-900',
-    borderColor: 'border-gray-300',
-    hoverColor: 'hover:bg-gray-50',
+    bgColor: 'bg-gray-700',
+    textColor: 'text-white',
+    borderColor: 'border-gray-600',
+    hoverColor: 'hover:bg-gray-600',
   },
   kakao: {
     name: '카카오',
@@ -57,6 +57,7 @@ const providers: Providers = {
   naver: {
     name: '네이버',
     bgColor: 'bg-[#03C75A]',
+    textColor: 'text-white', // 텍스트 색상 변경
     hoverColor: 'hover:bg-[#02B350]',
   },
 } as const;
@@ -65,10 +66,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
       const result = await signIn('credentials', {
@@ -77,8 +81,13 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         redirect: true,
         callbackUrl: '/',
       });
+
+      if (!result?.ok) {
+        setError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+      }
     } catch (error) {
       console.error('Login failed:', error);
+      setError('로그인 중 오류가 발생했습니다. 나중에 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -87,108 +96,129 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0" onClick={onClose} />
+    <div
+      className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4 transition-opacity duration-300"
+      aria-labelledby="login-modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div
-        className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
-        >
-          <span className="sr-only">Close</span>
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+      <div className="relative bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-auto p-0 z-10 overflow-hidden">
+        {/* 이미지 및 그라데이션 */}
+        <div className="relative h-40 p-4">
+          <Image
+            src="/images/projects/portfolio.png"
+            alt="Portfolio Background"
+            layout="fill"
+            objectFit="cover"
+            objectPosition="center"
+            className="opacity-90 rounded-t-lg"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900 rounded-t-lg"></div>
+        </div>
+
+        {/* 모달 내용 */}
+        <div className="bg-gray-900 bg-opacity-95 p-6">
+          {/* 닫기 버튼 */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 focus:outline-none"
+            aria-label="닫기"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
 
-        <div className="w-full space-y-8">
-          <div className="text-center">
-            <Image
-              src="/images/projects/portfolio.png"
-              alt="Portfolio Logo"
-              width={300}
-              height={300}
-              className="mx-auto rounded-3xl mb-4"
-              priority
-            />
-            <p className="mt-2 text-sm text-gray-600">
+          {/* 설명 */}
+          <div className="text-center mb-4 justify-center">
+            <AnimatedCode />
+            <p className="mt-4 text-sm text-white font-md">
               서비스를 이용하시려면 로그인해주세요
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            <div className="space-y-4 rounded-md shadow-sm">
-              <div>
-                <label htmlFor="email" className="sr-only">
-                  이메일
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="이메일"
-                />
-              </div>
-              <div>
-                <label htmlFor="password" className="sr-only">
-                  비밀번호
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="relative block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="비밀번호"
-                />
-              </div>
+          {/* 로그인 폼 */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="text-red-400 text-sm text-center">{error}</div>
+            )}
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10 pr-3 py-2 w-full border border-gray-700 rounded-md bg-gray-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="이메일"
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white" />
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 pr-10 py-2 w-full border border-gray-700 rounded-md bg-gray-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                placeholder="비밀번호"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none"
+                aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 표시'}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+              className="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 text-sm"
             >
               {isLoading ? '로그인 중...' : '로그인'}
             </button>
           </form>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">또는</span>
-            </div>
+          {/* 소셜 로그인 구분선 */}
+          <div className="flex items-center my-4">
+            <div className="flex-grow border-t border-gray-700"></div>
+            <span className="mx-2 text-gray-400 text-xs">또는</span>
+            <div className="flex-grow border-t border-gray-700"></div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* 소셜 로그인 버튼 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {Object.entries(providers).map(([id, provider]) => (
               <button
                 key={id}
                 className={`
-                  flex items-center justify-center px-4 py-2 rounded-lg
+                  flex items-center justify-center px-3 py-2 rounded-md text-sm
                   ${provider.bgColor}
                   ${provider.textColor || 'text-white'}
                   ${
@@ -196,11 +226,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   }
                   ${provider.hoverColor}
                   transition-colors
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
                 `}
                 onClick={() => signIn(id, { callbackUrl: '/' })}
               >
-                {provider.icon && <provider.icon className="w-5 h-5 mr-2" />}
-                {provider.name}로 계속하기
+                {provider.icon && <provider.icon className="w-4 h-4 mr-2" />}
+                {provider.name}
               </button>
             ))}
           </div>

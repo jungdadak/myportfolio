@@ -205,7 +205,8 @@ export function LoginModal({ isOpen, onOpenChange }: LoginModalProps) {
 							onClick={() => onOpenChange(false)}
 							className="justify-end text-sm font-semibold text-indigo-200 hover:text-indigo-300 transition-colors duration-200 flex items-center gap-1"
 						>
-							딱 10초면 가입완료! ✨
+							딱 10초면 가입완료! ✨{" "}
+							<span className="text-sm font -bold text-cyan-500">회원가입</span>
 						</Link>
 					</form>
 
